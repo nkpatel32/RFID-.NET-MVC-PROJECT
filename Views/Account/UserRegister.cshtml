@@ -1,0 +1,106 @@
+﻿@{
+    ViewBag.Title = "User Register";
+}
+
+<!-- Font Awesome for Show/Hide Password Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="flex min-h-screen">
+    <!-- Left Side: Registration Form -->
+    <div class="w-1/2 flex justify-center items-center bg-white p-8">
+        <div class="max-w-md w-full">
+            <div class="text-center mt-4">
+                <h3 class="text-2xl font-semibold mb-4">Welcome To User Register 👋</h3>
+                <p class="text-sm text-gray-500">Join us today! It’s quick and easy</p>
+            </div>
+
+            <div id="messageContainer">
+                @if (ViewBag.SuccessMessage != null)
+                {
+                    <p class="text-green-500 text-center">@ViewBag.SuccessMessage</p>
+                }
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <p class="text-red-500 text-center">@ViewBag.ErrorMessage</p>
+                }
+            </div>
+
+            <form method="post" action="@Url.Action("UserRegister", "Account")">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Full Name:</label>
+                    <input type="text" name="FullName" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Email:</label>
+                    <input type="email" name="Email" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+
+                <div class="mb-4 relative">
+                    <label class="block text-sm font-medium text-gray-700">Password:</label>
+                    <input type="password" id="password" name="Password" required class="w-full p-2 border border-gray-300 rounded-md pr-10">
+                    <button type="button" id="toggle-password" class="absolute right-3 top-9 text-gray-500">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+
+                <div class="mb-4 relative">
+                    <label class="block text-sm font-medium text-gray-700">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" name="ConfirmPassword" required class="w-full p-2 border border-gray-300 rounded-md pr-10">
+                    <button type="button" id="toggle-confirmPassword" class="absolute right-3 top-9 text-gray-500">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Mobile Number:</label>
+                    <input type="text" name="Mobile" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+
+                <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">
+                    Register
+                </button>
+            </form>
+
+            <div class="my-4 text-center">
+                <hr class="border-t border-gray-300" />
+                <p class="text-sm mt-4">
+                    Already have an account? <a href="@Url.Action("UserLogin", "Account")" class="text-blue-600">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Image -->
+    <div class="w-1/2 bg-gray-100 flex justify-center items-center">
+        <img src="~/images/login_img.png" alt="Register Illustration" class="object-cover w-full h-full">
+    </div>
+</div>
+
+<!-- Password Toggle Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function togglePassword(inputId, buttonId) {
+            const inputField = document.getElementById(inputId);
+            const toggleButton = document.getElementById(buttonId).querySelector("i");
+
+            if (inputField.type === "password") {
+                inputField.type = "text";
+                toggleButton.classList.remove("fa-eye-slash");
+                toggleButton.classList.add("fa-eye");
+            } else {
+                inputField.type = "password";
+                toggleButton.classList.remove("fa-eye");
+                toggleButton.classList.add("fa-eye-slash");
+            }
+        }
+
+        document.getElementById("toggle-password").addEventListener("click", function () {
+            togglePassword("password", "toggle-password");
+        });
+
+        document.getElementById("toggle-confirmPassword").addEventListener("click", function () {
+            togglePassword("confirmPassword", "toggle-confirmPassword");
+        });
+    });
+</script>

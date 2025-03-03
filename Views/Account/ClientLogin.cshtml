@@ -1,0 +1,90 @@
+﻿@{
+    ViewBag.Title = "Client Login";
+}
+
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="flex min-h-screen">
+    <!-- Left Side: Login Form -->
+    <div class="w-1/2 flex justify-center items-center bg-white p-8">
+        <div class="max-w-md w-full">
+            <!-- Welcome Message -->
+            <div class="text-center mt-4">
+                <h3 class="text-2xl font-semibold mb-4">Welcome, Client</h3>
+                <p class="text-sm text-gray-500">We are happy to have you back 👋</p>
+            </div>
+
+            <!-- Success & Error Messages -->
+            @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+            {
+                <p class="text-green-500 text-center">@ViewBag.SuccessMessage</p>
+            }
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <p class="text-red-500 text-center">@ViewBag.ErrorMessage</p>
+            }
+
+            <!-- Login Form -->
+            <form method="post" asp-action="ClientLogin" asp-controller="Account" class="mt-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Email:</label>
+                    <input type="email" name="email" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+
+                <div class="mb-4 relative">
+                    <label class="block text-sm font-medium text-gray-700">Password:</label>
+                    <input type="password" name="password" id="password" required class="w-full p-2 border border-gray-300 rounded-md pr-10">
+                    <button type="button" id="toggle-password" class="absolute right-3 top-9 text-gray-500">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center mb-4">
+                    <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2">
+                    <label for="agreeTerms" class="text-sm text-gray-600">
+                        I agree to the
+                        <a href="#" class="text-blue-600 hover:underline">terms & conditions</a>
+                    </label>
+                </div>
+
+                <p id="checkbox-warning" class="text-red-500 text-sm hidden">Please agree to the terms & conditions.</p>
+
+                <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">
+                    Login
+                </button>
+            </form>
+
+            <div class="my-4 text-center">
+                <hr class="border-t border-gray-300" />
+                <p class="text-sm mt-4">
+                    Don't have an account? <a href="@Url.Action("ClientRegister", "Account")" class="text-blue-600 hover:underline">Register</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Image -->
+    <div class="w-1/2 bg-gray-100 flex justify-center items-center">
+        <img src="~/images/login_img.png" alt="Login Illustration" class="object-cover w-full h-full">
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+    // Show/Hide Password
+    document.getElementById("toggle-password").addEventListener("click", function () {
+        const passwordField = document.getElementById("password");
+        const toggleIcon = this.querySelector("i");
+
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            toggleIcon.classList.remove("fa-eye-slash");
+            toggleIcon.classList.add("fa-eye");
+        } else {
+            passwordField.type = "password";
+            toggleIcon.classList.remove("fa-eye");
+            toggleIcon.classList.add("fa-eye-slash");
+        }
+    });
+</script>
