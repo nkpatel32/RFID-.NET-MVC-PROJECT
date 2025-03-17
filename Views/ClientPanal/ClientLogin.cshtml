@@ -1,9 +1,11 @@
 ﻿@{
+    Layout = null;
     ViewBag.Title = "Client Login";
 }
 
 <!-- Font Awesome for Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
 
 <div class="flex min-h-screen">
     <!-- Left Side: Login Form -->
@@ -58,7 +60,7 @@
             <div class="my-4 text-center">
                 <hr class="border-t border-gray-300" />
                 <p class="text-sm mt-4">
-                    Don't have an account? <a href="@Url.Action("ClientRegister", "Account")" class="text-blue-600 hover:underline">Register</a>
+                    Don't have an account? <a href="@Url.Action("ClientRegister", "Client")" class="text-blue-600 hover:underline">Register</a>
                 </p>
             </div>
         </div>
