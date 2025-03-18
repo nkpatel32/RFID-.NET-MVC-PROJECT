@@ -27,7 +27,7 @@
             }
 
             <!-- Login Form -->
-            <form method="post" asp-action="AdminLoginAPI" asp-controller="Admin" class="mt-4">
+            <form method="post" asp-action="AdminLogin" asp-controller="Admin" class="mt-4">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700">Username:</label>
                     <input type="text" name="username" required class="w-full p-2 border border-gray-300 rounded-md">
@@ -55,8 +55,7 @@
 
 <!-- JavaScript -->
 <script>
-    // Show/Hide Password
-    document.getElementById("toggle-password").addEventListener("click", function () {
+       document.getElementById("toggle-password").addEventListener("click", function () {
         const passwordField = document.getElementById("password");
         const toggleIcon = this.querySelector("i");
 
@@ -70,4 +69,5 @@
             toggleIcon.classList.add("fa-eye-slash");
         }
     });
+
 </script>
