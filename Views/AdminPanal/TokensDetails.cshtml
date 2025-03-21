@@ -1,8 +1,210 @@
-﻿@{
+﻿@model List<RFID_.NET_MVC_PROJECT.Models.TokensDetails>
+
+@{
     Layout = "~/Views/AdminPanal/_AdminLayout.cshtml";  // Path to your AdminLayout.cshtml
 }
-<div class="bg-white p-4 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold mb-4">token detils</h1>
-    <p>Content related to managing clients goes here.</p>
-  
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="flex items-center justify-between space-x-4">
+    <!-- Search Bar -->
+    <div class="relative w-2/3">
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+        <input type="text"
+               placeholder="Search by name or description..."
+               class="w-full p-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500"
+               value="@ViewData["SearchTerm"]"
+               id="searchInput"
+               oninput="searchTokens()" />
+    </div>
+
+    <!-- Add Token Button -->
+    <button class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" id="addTokenBtn">
+        Add Token
+    </button>
 </div>
+<br />
+
+    <!-- Table to display multiple token records -->
+    <div class="overflow-x-auto shadow-md rounded-lg">
+    <table id="tokensTable"  class="w-full border border-gray-300 bg-white rounded-lg">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="p-3 text-left">Token ID</th>
+                    <th class="p-3 text-left">Name</th>
+                    <th class="p-3 text-left">Price ($)</th>
+                    <th class="p-3 text-left">Duration (Days)</th>
+                    <th class="p-3 text-left">Description</th>
+                    <th class="p-3 text-left">Status</th>
+                    <th class="p-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var token in Model)
+                {
+                    <tr class="border-b hover:bg-gray-100">
+                        <td class="p-3">@token.token_id</td>
+                        <td class="p-3">@token.name</td>
+                        <td class="p-3">@token.price</td>
+                        <td class="p-3">@token.duration_day</td>
+                        <td class="p-3">@token.description</td>
+                        <td class="p-3">
+                            <span class="px-3 py-1 rounded text-white
+                                @(token.status == 0 ? "bg-green-500" : "bg-red-500")">
+                                @(token.status == 0 ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                    <td class="p-3">
+                        <button type="button" class="p-2 bg-transparent text-blue-500 hover:text-blue-700 editBtn"
+                                data-token-id="@token.token_id"
+                                data-name="@token.name"
+                                data-price="@token.price"
+                                data-duration="@token.duration_day"
+                                data-description="@token.description"
+                                data-status="@token.status">
+                            <i class="fas fa-edit"></i> <!-- Font Awesome Edit Icon -->
+                        </button>
+                    </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Modal Form -->
+<div id="editModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Edit Token</h2>
+        <form id="editForm" method="post" action="@Url.Action("EditToken", "Admin")">
+            <input type="hidden" id="tokenId" name="tokenId" />
+
+            <div class="mb-4">
+                <input type="text" id="name" name="name" class="w-full p-2 border rounded-lg" placeholder="Name" />
+            </div>
+
+            <div class="mb-4">
+                <input type="number" id="price" name="price" class="w-full p-2 border rounded-lg" placeholder="Price ($)" step="0.001" />
+            </div>
+
+            <div class="mb-4">
+                <input type="number" id="duration_day" name="duration_day" class="w-full p-2 border rounded-lg" placeholder="Duration (Days)" />
+            </div>
+
+            <div class="mb-4">
+                <textarea id="description" name="description" class="w-full p-2 border rounded-lg" placeholder="Description"></textarea>
+            </div>
+
+            <div class="mb-4">
+                <select id="status" name="status" class="w-full p-2 border rounded-lg">
+                    <option value="0">Active</option>
+                    <option value="1">Inactive</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="button" id="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg mr-2">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all the edit buttons and the add token button
+        const editButtons = document.querySelectorAll('.editBtn');
+        const addTokenButton = document.getElementById('addTokenBtn');
+
+        // Get modal and its close button
+        const modal = document.getElementById('editModal');
+        const closeModal = document.getElementById('closeModal');
+        const form = document.getElementById('editForm');
+
+        // Add click event listener to all the edit buttons
+        editButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // Get data from the clicked button's data attributes
+                const tokenId = this.getAttribute('data-token-id');
+                const name = this.getAttribute('data-name');
+                const price = this.getAttribute('data-price');
+                const duration = this.getAttribute('data-duration');
+                const description = this.getAttribute('data-description');
+                const status = this.getAttribute('data-status');
+
+                // Set values in the modal form
+                document.getElementById('tokenId').value = tokenId;
+                document.getElementById('name').value = name;
+                document.getElementById('price').value = price;
+                document.getElementById('duration_day').value = duration;
+                document.getElementById('description').value = description;
+                document.getElementById('status').value = status;
+
+                // Change form action to Edit
+                form.action = '@Url.Action("EditToken", "Admin")';
+
+                // Open the modal
+                modal.classList.remove('hidden');
+            });
+        });
+
+        // Add click event listener for the "Add Token" button
+        addTokenButton.addEventListener('click', function () {
+            // Clear the form for new token
+            document.getElementById('tokenId').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('duration_day').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('status').value = '0'; // Set to Active by default
+
+            // Change form action to Add
+            form.action = '@Url.Action("AddToken", "Admin")';
+
+            // Open the modal
+            modal.classList.remove('hidden');
+        });
+
+        // Close modal when clicking 'Cancel' button
+        closeModal.addEventListener('click', function () {
+            modal.classList.add('hidden');
+        });
+
+        // Close modal when clicking outside the modal
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+    });
+        function searchTokens() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#tokensTable tbody tr');
+
+        rows.forEach(row => {
+            const nameCell = row.cells[1].textContent.toLowerCase();
+            const descriptionCell = row.cells[4].textContent.toLowerCase();
+
+            // Show or hide rows based on the search term
+            if (nameCell.includes(searchTerm) || descriptionCell.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>

@@ -1,8 +1,142 @@
 ﻿@{
     Layout = "~/Views/AdminPanal/_AdminLayout.cshtml";  // Path to your AdminLayout.cshtml
 }
-<div class="bg-white p-4 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold mb-4">purches token</h1>
-    <p>Content related to managing clients goes here.</p>
-  
+@model List<RFID_.NET_MVC_PROJECT.Models.PurchasedTokens>
+
+<div class="p-6 max-w-5xl mx-auto">
+    <h2 class="text-3xl font-semibold text-center mb-6 text-gray-800">Purchased Tokens</h2>
+
+    <!-- Search and Sorting -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+        <!-- Search Bar -->
+        <div class="relative w-full md:w-2/3">
+            <input id="searchInput" type="text"
+                   placeholder="Search by name, email, or token ID..."
+                   class="w-full p-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <!-- Sorting Dropdown -->
+        <div class="relative w-full md:w-1/3">
+            <select id="sortSelect" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="ct_id">Sort by CT ID</option>
+                <option value="name">Sort by Client Name</option>
+                <option value="email">Sort by Email</option>
+                <option value="token_id">Sort by Token ID</option>
+                <option value="status">Sort by Status</option>
+                <option value="purchase_date">Sort by Purchase Date</option>
+                <option value="expire_date">Sort by Expire Date</option>
+            </select>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="overflow-x-auto shadow-md rounded-lg">
+            <table id="tokensTable" class="w-full border border-gray-300 bg-white rounded-lg">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="p-3 text-left">CT ID</th>
+                        <th class="p-3 text-left">Client Name</th>
+                        <th class="p-3 text-left">Email</th>
+                        <th class="p-3 text-left">Token ID</th>
+                        <th class="p-3 text-left">Pass Key</th>
+                        <th class="p-3 text-left">Status</th>
+                        <th class="p-3 text-left">Purchase Date</th>
+                        <th class="p-3 text-left">Expire Date</th>
+                        <th class="p-3 text-left">Subject</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var token in Model)
+                    {
+                        <tr class="border-b hover:bg-gray-100">
+                            <td class="p-3">@token.ct_id</td>
+                            <td class="p-3">@token.name</td>
+                            <td class="p-3">@token.email</td>
+                            <td class="p-3">@token.token_id</td>
+                            <td class="p-3">@token.pass_key</td>
+                            <td class="p-3">
+                                <span class="px-2 py-1 rounded-md text-sm font-medium
+                                    @(token.status == 1 ? "bg-green-200 text-green-700" : "bg-red-200 text-red-700")">
+                                    @(token.status == 1 ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td class="p-3">@token.purchase_date.ToString("MM/dd/yyyy")</td>
+                            <td class="p-3">@token.expire_date.ToString("MM/dd/yyyy")</td>
+                            <td class="p-3">@token.subject_name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-center text-lg font-medium text-gray-600">No tokens found.</p>
+    }
 </div>
+
+<script>
+    // Search functionality
+    document.getElementById("searchInput").addEventListener("input", function () {
+        var searchTerm = this.value.toLowerCase();
+        var rows = document.querySelectorAll("#tokensTable tbody tr");
+
+        rows.forEach(function(row) {
+            var cells = row.getElementsByTagName("td");
+            var found = false;
+            // Loop through each cell in the row and check if the search term matches any of the values
+            for (var i = 0; i < cells.length; i++) {
+                if (cells[i].innerText.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                    break;
+                }
+            }
+            row.style.display = found ? "" : "none";
+        });
+    });
+
+    // Sorting functionality
+    document.getElementById("sortSelect").addEventListener("change", function () {
+        var sortBy = this.value;
+        var table = document.getElementById("tokensTable");
+        var rows = Array.from(table.querySelectorAll("tbody tr"));
+
+        var indexMap = {
+            ct_id: 0,
+            name: 1,
+            email: 2,
+            token_id: 3,
+            status: 4,
+            purchase_date: 5,
+            expire_date: 6,
+            subject_name: 7
+        };
+
+        rows.sort(function (a, b) {
+            var cellA = a.cells[indexMap[sortBy]].innerText.trim();
+            var cellB = b.cells[indexMap[sortBy]].innerText.trim();
+
+            if (sortBy === "purchase_date" || sortBy === "expire_date") {
+                // Handle date comparison by converting string to Date object
+                var dateA = new Date(cellA);
+                var dateB = new Date(cellB);
+                return dateA - dateB; // Ascending order
+            }
+
+            if (sortBy === "status") {
+                // Handle status comparison ("Active" comes before "Inactive")
+                return cellA === "Active" ? -1 : 1;
+            }
+
+            // Default string comparison for other columns
+            return cellA < cellB ? -1 : (cellA > cellB ? 1 : 0);
+        });
+
+        // Re-append sorted rows back to the table
+        rows.forEach(function(row) {
+            table.querySelector("tbody").appendChild(row);
+        });
+    });
+</script>
+

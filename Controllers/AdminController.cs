@@ -119,16 +119,102 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
             }
         }
 
-        
-        public IActionResult AdminTokensDetails()
+
+        public async Task<IActionResult> AdminTokensDetails()
         {
 
-            return PartialView("~/Views/AdminPanal/TokensDetails.cshtml"); // Return a partial view
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync("getTokensForAdmin");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<getTokensDetailsApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            var users = apiResponse.data;
+                            if (users != null && users.Any())
+                            {
+                                // log or debug here
+                                Console.WriteLine("TokensDetails fetched successfully: " + users.Count);
+                            }
+                            else
+                            {
+                                Console.WriteLine("No TokensDetails found in response.");
+                            }
+                            return PartialView("~/Views/AdminPanal/TokensDetails.cshtml", users);
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch TokensDetails. Please try again later.";
+                            return PartialView("~/Views/AdminPanal/TokensDetails.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch TokensDetails. Please try again later.";
+                        return PartialView("~/Views/AdminPanal/TokensDetails.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/AdminPanal/TokensDetails.cshtml");
+                }
+            }
         }
-        public IActionResult PurchasedTokens()
+        public async Task<IActionResult> PurchasedTokens()
         {
 
-            return PartialView("~/Views/AdminPanal/PurchasedTokens.cshtml"); // Return a partial view
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync("getPurchasedTokens");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<getPurchasedTokensApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            var users = apiResponse.data;
+                            if (users != null && users.Any())
+                            {
+                                // log or debug here
+                                Console.WriteLine("PurchasedTokens fetched successfully: " + users.Count);
+                            }
+                            else
+                            {
+                                Console.WriteLine("No PurchasedTokens found in response.");
+                            }
+                            return PartialView("~/Views/AdminPanal/PurchasedTokens.cshtml", users);
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch PurchasedTokens. Please try again later.";
+                            return PartialView("~/Views/AdminPanal/PurchasedTokens.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch PurchasedTokens. Please try again later.";
+                        return PartialView("~/Views/AdminPanal/PurchasedTokens.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/AdminPanal/PurchasedTokens.cshtml");
+                }
+            }
         }
 
         [HttpPost]
@@ -288,6 +374,135 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
             // Redirect back to the ManageUsers view
             return RedirectToAction("ManageUsers");
         }
+        [HttpPost]
+        public async Task<IActionResult> UpdateClientStatus(int client_id, int current_status)
+        {
+            // Toggle the status (0 -> 1 or 1 -> 0)
+            var newStatus = current_status == 0 ? 1 : 0;
 
+            // Prepare the request data for the API call
+            var requestBody = new
+            {
+                client_id = client_id,
+                status = newStatus
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");  // Your API base URL
+
+                try
+                {
+                    var response = await client.PutAsJsonAsync("updateClientStatus", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        TempData["SuccessMessage"] = "client status updated successfully!";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to update client status. Please try again.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Error occurred while updating client status: " + ex.Message;
+                }
+            }
+
+            // Redirect back to the ManageUsers view
+            return RedirectToAction("ManageClients");
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditToken(int tokenId, string name, decimal price, int duration_day, string description,int  status)
+        {
+           
+
+            
+            var requestBody = new
+            {
+                token_id = tokenId,
+                name = name,
+                price= price,
+                duration_day= duration_day,
+                description= description,
+                status= status
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");  // Your API base URL
+
+                try
+                {
+                    var response = await client.PutAsJsonAsync("editTokenDetails", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        TempData["SuccessMessage"] = "TokenDetails updated successfully!";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to update TokenDetails. Please try again.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Error occurred while updating TokenDetails: " + ex.Message;
+                }
+            }
+
+            // Redirect back to the ManageUsers view
+            return RedirectToAction("AdminTokensDetails");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddToken( string name, decimal price, int duration_day, string description, int status)
+        {
+
+
+
+            var requestBody = new
+            {
+               
+                name = name,
+                price = price,
+                duration_day = duration_day,
+                description = description,
+                status = status
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");  // Your API base URL
+
+                try
+                {
+                    var response = await client.PostAsJsonAsync("addNewToken", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        TempData["SuccessMessage"] = "TokenDetails Add successfully!";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to Add TokenDetails. Please try again.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Error occurred while Add TokenDetails: " + ex.Message;
+                }
+            }
+
+            // Redirect back to the ManageUsers view
+            return RedirectToAction("AdminTokensDetails");
+        }
     }
 }
