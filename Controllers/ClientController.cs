@@ -251,15 +251,14 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                 }
             }
         }
-        public async Task<IActionResult> ClientSubject(int ct_id,string subject_name)
+        public async Task<IActionResult> ClientSubject(getCtIdAndSubjectName request)
         {
-
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri("http://localhost:3000/");
                 try
-                {   
-                    var response = await client.GetAsync($"getClientSubjectDetails?ct_id={ct_id}");
+                {
+                    var response = await client.GetAsync($"getClientSubjectDetails?ct_id={request.ct_id}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -268,10 +267,14 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
 
                         if (apiResponse?.success == true)
                         {
-                            ViewBag.SubjectName = subject_name;
-                            var users = apiResponse.data;
+                            // Prepare the view model
+                            var viewModel = new ClientSubjectViewModel
+                            {
+                                Info = request,  // Pass the ct_id and subject_name
+                                SubjectDetails = apiResponse.data // Pass the list of SubjectDetails
+                            };
 
-                            return PartialView("~/Views/ClientPanal/ClientSubject.cshtml", users);
+                            return PartialView("~/Views/ClientPanal/ClientSubject.cshtml", viewModel);
                         }
                         else
                         {
@@ -281,7 +284,7 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                     }
                     else
                     {
-                        ViewBag.ErrorMessage = "Failed to fetch ClientSubject Details.. Please try again later.";
+                        ViewBag.ErrorMessage = "Failed to fetch ClientSubject Details. Please try again later.";
                         return PartialView("~/Views/ClientPanal/ClientSubject.cshtml");
                     }
                 }
@@ -291,11 +294,10 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                     return PartialView("~/Views/ClientPanal/ClientSubject.cshtml");
                 }
 
-
                 return View("~/Views/ClientPanal/ClientSubject.cshtml");
             }
-
         }
+
 
         public IActionResult EditPassword()
         {
@@ -309,7 +311,7 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
             string clientId = GetClientDataFromCookie("client_id");
             if (clientId == null)
             {
-               return RedirectToAction("ClientLogin");
+                return RedirectToAction("ClientLogin");
             }
 
             var requestBody = new
@@ -379,18 +381,19 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
             return PartialView("~/Views/ClientPanal/EditProfile.cshtml");
         }
         [HttpPost]
-        public async Task<IActionResult> UpdateClient(string name,string email,string mobile)
+        public async Task<IActionResult> UpdateClient(string name, string email, string mobile)
         {
 
             string clientId = GetClientDataFromCookie("client_id");
             if (clientId == null)
             {
-               
+
                 return RedirectToAction("ClientLogin");
             }
             // Prepare the request data for the API call
             var requestBody = new
-            {   client_id= clientId,
+            {
+                client_id = clientId,
                 name = name,
                 email = email,
                 mobile = mobile
@@ -427,12 +430,298 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
             // Redirect back to the ManageUsers view
             return RedirectToAction("EditProfile");
         }
-        public IActionResult AddNewSubject()
+        public async Task<IActionResult> AddNewSubject()
         {
-            
-            return PartialView("~/Views/ClientPanal/AddNewSubject.cshtml");
+
+
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync("/getTokensForClient");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<getTokensForClientApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            var users = apiResponse.data;
+                            if (users != null && users.Any())
+                            {
+                                // log or debug here
+                                Console.WriteLine("Tokens fetched successfully: " + users.Count);
+                            }
+                            else
+                            {
+                                Console.WriteLine("No Tokens found in response.");
+                            }
+                            return PartialView("~/Views/ClientPanal/AddNewSubject.cshtml", users);
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch Tokens. Please try again later.";
+                            return PartialView("~/ Views / ClientPanal / AddNewSubject.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch Tokens. Please try again later.";
+                        return PartialView("~/Views/ClientPanal/AddNewSubject.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/ClientPanal/AddNewSubject.cshtml");
+                }
+            }
+
+
+
+        }
+        public async Task<IActionResult> ProcideToAdd(int token_id)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync($"/getTokenById?token_id={token_id}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine(result); // Log the raw response to verify the structure
+
+                        var apiResponse = JsonSerializer.Deserialize<getTokenDetailsApiResponse>(result);
+
+                        if (apiResponse?.success == true && apiResponse.data != null)
+                        {
+                            var token = apiResponse.data;
+                            Console.WriteLine("Token fetched successfully: " + token.name);
+                            return PartialView("~/Views/ClientPanal/ProcideToAdd.cshtml", token);
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch token. Please try again later.";
+                            return PartialView("~/Views/ClientPanal/ProcideToAdd.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch token. Please try again later.";
+                        return PartialView("~/Views/ClientPanal/ProcideToAdd.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/ClientPanal/ProcideToAdd.cshtml");
+                }
+            }
+        }
+        public async Task<IActionResult> BuySubject(int token_id, string subject_name, string pass_key, string purchase_date, string expire_date)
+        {
+            string clientId = GetClientDataFromCookie("client_id");
+            if (clientId == null)
+            {
+                return RedirectToAction("ClientLogin");
+            }
+
+            // Prepare the request data for the API call
+            var requestBody = new
+            {
+                token_id = token_id,
+                pass_key = pass_key,
+                subject_name = subject_name,
+                client_id = clientId,
+                purchase_date = purchase_date,
+                expire_date = expire_date,
+                status = "0" // assuming status is 0 initially
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");  // Your Express.js API URL
+
+                try
+                {
+                    // Send the POST request with the request body serialized as JSON
+                    var response = await client.PostAsJsonAsync("addNewSubject", requestBody);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            TempData["SuccessMessage"] = "New subject added successfully!";
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = $"Failed to add new subject";
+                        }
+                    }
+                    else
+                    {
+                        // Handle unsuccessful HTTP response (non-2xx)
+                        TempData["ErrorMessage"] = "Failed to connect to the API or unexpected API response.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Error occurred while updating user status: " + ex.Message;
+                }
+            }
+
+            return RedirectToAction("ClientDashboard");
+        }
+
+        public async Task<IActionResult> getUsersWhichInSubject(getCtIdAndSubjectName request)
+        {
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync($"getUserWhichInSubject?ct_id={request.ct_id}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<getUsersWhichInSubjectApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            var viewModel = new UsersWhichInSubjectModel
+                            {
+                                Info = request,  
+                                UsersWhichInSubject = apiResponse.data                             };
+                            return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml", viewModel);
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                            return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                        return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml");
+                }
+            }
         }
 
 
+        [HttpPut]
+        public async Task<IActionResult> EditUserInSubject([FromBody] EditUserRequest request)
+        {
+            var requestBody = new
+            {
+                user_id = request.user_id,
+                ct_id = request.ct_id,
+                designation = request.Designation,
+                rfid = request.Rfid
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/"); // Your API base URL
+
+                try
+                {
+                    var response = await client.PutAsJsonAsync("editUserInsubject", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        return Json(new { success = true, message = "User status updated successfully!" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to update user status. Please try again." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error occurred while updating user status: " + ex.Message });
+                }
+            }
+        }
+        [HttpDelete]
+        public async Task<IActionResult> DeleteUserInSubject([FromBody] DeleteUserRequest request)
+        {
+            var requestBody = new
+            {
+                user_id = request.user_id,
+                ct_id = request.ct_id
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/"); 
+
+                try
+                {
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Delete, "deleteUserFromSubject")
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
+                    };
+
+                    var response = await client.SendAsync(requestMessage);
+
+                    response.EnsureSuccessStatusCode();
+
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        return Json(new { success = true, message = "User deleted successfully!" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to delete user. Please try again." });
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    return Json(new { success = false, message = "HTTP Error: " + ex.Message });
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error occurred while deleting user: " + ex.Message });
+                }
+            }
+        }
+
+
+
+    }
+    public class EditUserRequest
+    {
+        public string user_id { get; set; }
+        public string ct_id { get; set; }
+        public string Designation { get; set; }
+        public string Rfid { get; set; }
+    }
+    public class DeleteUserRequest
+    {
+        public string user_id { get; set; }
+        public string ct_id { get; set; }
+       
     }
 }

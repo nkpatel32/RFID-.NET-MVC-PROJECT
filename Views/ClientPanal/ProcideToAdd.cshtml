@@ -1,0 +1,83 @@
+﻿@model RFID_.NET_MVC_PROJECT.Models.TokenDetailsForAddSubject
+@{
+    Layout = "~/Views/ClientPanal/_ClientLayout.cshtml";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+<div class="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg text-center mt-10">
+    <h1 class="text-2xl font-bold mb-2">Buy Token</h1>
+
+    <p class="text-lg text-green-600 font-semibold">Price: ₹@Model.price</p>
+    <p class="text-lg text-green-600 font-semibold">Token: @Model.name</p>
+
+    <form action="@Url.Action("BuySubject", "Client")" method="post" class="mt-4 space-y-4">
+        <input type="hidden" name="token_id" value="@Model.token_id" />
+
+        <input type="hidden" id="purchaseDate" name="purchase_date" value="" />
+
+        <input type="hidden" id="expireDate" name="expire_date" value="" />
+
+        <div class="text-left">
+            <label class="block font-semibold">Pass Key:</label>
+            <input type="text"
+                   id="passKey"
+                   name="pass_key"
+                   value=""
+                   readonly
+                   class="w-full p-2 border rounded bg-gray-100 cursor-not-allowed border-black" />
+        </div>
+
+        <div class="text-left">
+            <label class="block font-semibold">Subject Name:</label>
+            <input type="text"
+                   name="subject_name"
+                   placeholder="Enter Subject Name"
+                   class="w-full p-2 border rounded border-black"
+                   required />
+        </div>
+
+        <button type="submit"
+                class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
+            Proceed to Payment
+        </button>
+    </form>
+
+    <p class="mt-4 text-gray-500">Fill in the details to purchase your token.</p>
+</div>
+
+<script>
+    function generateRandomPasskey() {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let passkey = "";
+        for (let i = 0; i < 10; i++) {  // Length of passkey = 10
+            const randomIndex = Math.floor(Math.random() * chars.length);
+            passkey += chars[randomIndex];
+        }
+        return passkey;
+    }
+
+    // Set the value of the Pass Key field to the generated random passkey
+    document.getElementById('passKey').value = generateRandomPasskey();
+
+    // Get today's date
+    const purchaseDate = new Date();
+    // Set the purchase date field value
+    document.getElementById('purchaseDate').value = purchaseDate.toISOString().split('T')[0];  // Format: YYYY-MM-DD
+
+    // Calculate the expire date by adding the duration in days
+    const expireDate = new Date(purchaseDate);
+    expireDate.setDate(expireDate.getDate() + @Model.duration_day);  // Add duration_day to the current date
+    // Set the expire date field value
+    document.getElementById('expireDate').value = expireDate.toISOString().split('T')[0];  // Format: YYYY-MM-DD
+</script>
