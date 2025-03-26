@@ -1,0 +1,81 @@
+﻿@model List<RFID_.NET_MVC_PROJECT.Models.SubjectDetail>
+
+@{
+    Layout = "~/Views/ClientPanal/_ClientLayout.cshtml";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+<div class="p-6 bg-white rounded-lg shadow-lg">
+    <div class="flex justify-between items-center p-4">
+<h1 class ="text-xl font-semibold">@ViewBag.SubjectName</h1>
+        <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+            Users
+        </button>
+        <button class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-green-600">
+            Upade token
+        </button>
+        <button onClick={handleEditSubject}
+                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            Edit Subject
+        </button>
+            
+        <button class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-green-600">
+            Attendance
+        </button>
+    </div>
+<div class="mt-4">
+    <h3 class="text-xl font-semibold">Token Details</h3>
+    <table class="min-w-full table-auto mt-4 border-collapse">
+        <thead>
+            <tr class="border-b border-black">
+                <th class="px-4 py-2 text-left font-semibold">Attribute</th>
+                <th class="px-4 py-2 text-left font-semibold">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var subject in Model)
+            {
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Pass Key</td>
+                    <td class="px-4 py-2 text-green-500">@subject.pass_key</td>
+                </tr>
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Purchase Date</td>
+                    <td class="px-4 py-2">@subject.purchase_date</td>
+                </tr>
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Expire Date</td>
+                    <td class="px-4 py-2 font-bold text-red-500">@subject.expire_date</td>
+                </tr>
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Price</td>
+                    <td class="px-4 py-2">@subject.price</td>
+                </tr>
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Duration (Days)</td>
+                    <td class="px-4 py-2">@subject.duration_day days</td>
+                </tr>
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Description</td>
+                    <td class="px-4 py-2">@subject.description</td>
+                </tr>
+                <tr class="border-b border-black">
+                    <td class="px-4 py-2 font-semibold">Token Name</td>
+                    <td class="px-4 py-2">@subject.name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+</div>

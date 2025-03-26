@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.4/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>@ViewData["Title"]</title>
+</head>
+<body class="bg-gray-100 flex">
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="h-screen bg-black text-white p-4 w-64 flex flex-col transition-all duration-300 ease-in-out">
+        <!-- Title Row with Toggle Button -->
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-white text-2xl font-bold" id="sidebarTitle">Client</span>
+            <button id="toggleSidebar" class="p-2 rounded hover:bg-gray-700 ml-auto">
+                <i class="fas fa-bars text-white w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Search Bar / Search Icon -->
+        <div class="mb-4" id="searchContainer">
+            <input type="text" placeholder="Search..." class="w-full p-2 rounded bg-gray-800 text-white focus:outline-none" />
+        </div>
+
+        <!-- Sidebar Links -->
+        <ul class="space-y-3 flex-1">
+            <li>
+                <a href="@Url.Action("EditPassword", "Client")" class="flex items-center gap-2 p-2 rounded w-full">
+                    <i class="fas fa-key w-6 h-6"></i>
+                    <span class="sidebar-text">Edit Password</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("EditProfile", "Client")" class="flex items-center gap-2 p-2 rounded w-full">
+                    <i class="fas fa-key w-6 h-6"></i>
+                    <span class="sidebar-text">Edit Profile</span>
+                </a>
+            </li>
+            <!-- View Subject Dropdown -->
+            <li id="viewSubjectDropdown">
+                <div class="flex items-center justify-between cursor-pointer p-2 rounded w-full">
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-book-open w-6 h-6"></i>
+                        <span class="sidebar-text">View Subject</span>
+                    </span>
+                    <span id="dropdownArrow" class="text-white">▼</span>
+                </div>
+                <ul id="dropdownMenu" class="pl-6 mt-2 space-y-2 hidden">
+                    
+                </ul>
+            </li>
+
+            <li>
+                <a href="@Url.Action("AddNewSubject", "Client")" class="flex items-center gap-2 p-2 rounded w-full">
+                    <i class="fas fa-plus w-6 h-6"></i>
+                    <span class="sidebar-text">Add New Subject</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="mb-4">
+            <a href="@Url.Action("Logout", "Admin")" class="flex items-center gap-2 w-full p-2 rounded">
+                <i class="fas fa-sign-out-alt w-6 h-6"></i>
+                <span class="sidebar-text">Logout</span>
+            </a>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="adminInfo" class="flex items-center bg-gray-800 p-2 rounded-lg mt-2">
+            <i class="fas fa-user-circle w-10 h-10 text-white"></i>
+            <div class="ml-3">
+                <p class="font-bold">Admin Name</p>
+                <p class="text-sm text-gray-400">Admin</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="mainContentArea" class="flex-1 ml-1 p-8">
+        @RenderBody()  <!-- This is where the content from child views (like AdminDashboard.cshtml) will be injected -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let isOpen = true;
+            let isDropdownOpen = false;
+
+            const sidebar = document.getElementById('sidebar');
+            const searchContainer = document.getElementById('searchContainer');
+            const adminInfo = document.getElementById('adminInfo');
+            const sidebarTitle = document.getElementById('sidebarTitle');
+            const sidebarTextElements = document.querySelectorAll('.sidebar-text');
+            const toggleButton = document.getElementById('toggleSidebar');
+
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const dropdownArrow = document.getElementById('dropdownArrow');
+
+            // Sidebar toggle functionality
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function () {
+                    isOpen = !isOpen;
+
+                    if (isOpen) {
+                        sidebar.classList.remove('w-16');
+                        sidebar.classList.add('w-64');
+                        searchContainer.classList.remove('hidden');
+                        adminInfo.classList.remove('hidden');
+                        sidebarTitle.classList.remove('hidden');
+                        dropdownArrow.classList.remove('hidden');
+                        sidebarTextElements.forEach(el => el.classList.remove('hidden'));
+                    } else {
+                        sidebar.classList.remove('w-64');
+                        sidebar.classList.add('w-16');
+                        searchContainer.classList.add('hidden');
+                        adminInfo.classList.add('hidden');
+                        sidebarTitle.classList.add('hidden');
+                        dropdownArrow.classList.add('hidden');
+                        sidebarTextElements.forEach(el => el.classList.add('hidden'));
+                    }
+                });
+            }
+
+            // Dropdown toggle functionality
+            const viewSubjectDropdown = document.getElementById('viewSubjectDropdown');
+            if (viewSubjectDropdown) {
+                viewSubjectDropdown.addEventListener('click', function () {
+                    isDropdownOpen = !isDropdownOpen;
+                    if (isDropdownOpen) {
+                        dropdownMenu.classList.remove('hidden');
+                        dropdownArrow.textContent = '▲';
+                    } else {
+                        dropdownMenu.classList.add('hidden');
+                        dropdownArrow.textContent = '▼';
+                    }
+                });
+            }
+
+               fetch('@Url.Action("GetSubject", "Client")')  // Replace with your actual action URL
+        .then(response => response.json())  // Parse the response as JSON
+        .then(subjects => {
+            console.log(subjects);
+            if (subjects && subjects.length > 0) {
+                subjects.forEach(subject => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('cursor-pointer', 'p-2', 'rounded', 'hover:text-green-400');
+
+                    const icon = document.createElement('i');
+                    icon.classList.add('fas', 'fa-pencil-alt', 'text-red-400', 'w-5', 'h-5');
+
+                    const span = document.createElement('span');
+                    span.classList.add('sidebar-text');
+                    span.textContent = subject.subject_name;  // Use the 'subject_name' property
+
+                    listItem.setAttribute('data-id', subject.ct_id);  // Set 'ct_id' as a custom attribute (key)
+
+                    // Add event listener to redirect when clicked
+                    listItem.addEventListener('click', function() {
+                        const ct_id = subject.ct_id; // Get the ct_id of the clicked subject
+                        const subject_name = subject.subject_name;
+                        // Redirect to your desired action in the controller, pass ct_id as a parameter
+                        window.location.href = '@Url.Action("ClientSubject", "Client")' + '?ct_id=' + ct_id+'&subject_name='+subject_name;
+                    });
+
+                    listItem.appendChild(icon);
+                    listItem.appendChild(span);
+                    dropdownMenu.appendChild(listItem);
+                });
+            } else {
+                // Handle no subjects case (optional)
+                const noSubjectsItem = document.createElement('li');
+                noSubjectsItem.classList.add('p-2', 'text-gray-500');
+                noSubjectsItem.textContent = 'No subjects available';
+                dropdownMenu.appendChild(noSubjectsItem);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching subjects:', error);
+        });
+
+        });
+    </script>
+
+
+</body>
+</html>
