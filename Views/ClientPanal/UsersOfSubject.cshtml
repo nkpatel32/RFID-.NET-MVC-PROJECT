@@ -19,7 +19,15 @@
     </div>
 }
 
-<h2 class="text-xl font-semibold mb-4">Users in Subject</h2>
+<div class="container mx-auto p-1">
+    <div class="flex justify-between items-center p-4">
+        <h1 class="text-xl font-semibold">User List</h1>
+        <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                onclick="openAddUserModal()">
+            Add User
+        </button>
+
+    </div>
 
 <div class="overflow-x-auto bg-white rounded-lg shadow-lg">
     <table class="min-w-full table-auto">
@@ -34,6 +42,8 @@
             </tr>
         </thead>
         <tbody class="text-gray-700">
+            @if (Model?.UsersWhichInSubject != null && Model.UsersWhichInSubject.Any())
+{
             @foreach (var user in Model.UsersWhichInSubject)
             {
                 <tr class="border-b hover:bg-gray-50">
@@ -56,11 +66,15 @@
                         </a>
                     </td>
                 </tr>
+            }}
+            else
+            {
+                <tr><td colspan="6">No users found.</td></tr>
             }
         </tbody>
     </table>
 </div>
-
+</div>
 
 <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex justify-center items-center">
     <div class="bg-white rounded-lg p-6 w-1/3">
@@ -106,6 +120,33 @@
                 </button>
                 <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">
                     Confirm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="addUserModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex justify-center items-center">
+    <div class="bg-white rounded-lg p-6 w-1/3">
+        <h3 class="text-xl font-semibold mb-4">Add New User</h3>
+        <form id="addUserForm" onsubmit="handleAddUser(event)">
+            <div class="mb-4">
+                <label for="addUserId" class="block text-sm font-medium text-gray-700">User ID</label>
+                <input type="text" id="addUserId" name="user_id" class="mt-1 p-2 w-full border rounded-md" required />
+            </div>
+            <div class="mb-4">
+                <label for="addRfid" class="block text-sm font-medium text-gray-700">RFID</label>
+                <input type="text" id="addRfid" name="rfid" class="mt-1 p-2 w-full border rounded-md" required />
+            </div>
+            <div class="mb-4">
+                <label for="addDesignation" class="block text-sm font-medium text-gray-700">Designation</label>
+                <input type="text" id="addDesignation" name="designation" class="mt-1 p-2 w-full border rounded-md" required />
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeAddUserModal()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+                    Add User
                 </button>
             </div>
         </form>
@@ -228,5 +269,55 @@
 
         // Close the modal
         closeDeleteModal();
+    }
+</script>
+<script>
+    const addUserUrl = "@Url.Action("AddUserInSubject", "Client")";
+
+    function openAddUserModal() {
+        document.getElementById("addUserModal").classList.remove("hidden");
+    }
+
+    function closeAddUserModal() {
+        document.getElementById("addUserModal").classList.add("hidden");
+    }
+
+    function handleAddUser(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const userId = document.getElementById("addUserId").value;
+        const rfid = document.getElementById("addRfid").value;
+        const designation = document.getElementById("addDesignation").value;
+        const ctId = "@Model.Info.ct_id"; // Ensure this is properly formatted
+
+        const requestBody = {
+            user_id: userId,
+            rfid: rfid,
+            designation: designation,
+            ct_id: ctId
+        };
+
+        console.log("Add User Request:", JSON.stringify(requestBody));
+
+        fetch(addUserUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.log(error.message);
+            alert("An error occurred: " + error.message);
+        });
+
+        closeAddUserModal();
     }
 </script>

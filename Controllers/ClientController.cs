@@ -583,7 +583,6 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
 
         public async Task<IActionResult> getUsersWhichInSubject(getCtIdAndSubjectName request)
         {
-
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri("http://localhost:3000/");
@@ -596,33 +595,41 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                         var result = await response.Content.ReadAsStringAsync();
                         var apiResponse = JsonSerializer.Deserialize<getUsersWhichInSubjectApiResponse>(result);
 
-                        if (apiResponse?.success == true)
+                        if (apiResponse?.success == true && apiResponse.data != null)
                         {
                             var viewModel = new UsersWhichInSubjectModel
                             {
-                                Info = request,  
-                                UsersWhichInSubject = apiResponse.data                             };
+                                Info = request,
+                                UsersWhichInSubject = apiResponse.data
+                            };
                             return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml", viewModel);
                         }
-                        else
-                        {
-                            ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
-                            return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml");
-                        }
                     }
-                    else
+
+                    // If API response is unsuccessful, return an empty model
+                    var emptyModel = new UsersWhichInSubjectModel
                     {
-                        ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
-                        return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml");
-                    }
+                        Info = request,
+                        UsersWhichInSubject = new List<UsersWhichInSubject>() // Ensure an empty list instead of null
+                    };
+
+                    ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                    return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml", emptyModel);
                 }
                 catch (HttpRequestException ex)
                 {
+                    var emptyModel = new UsersWhichInSubjectModel
+                    {
+                        Info = request,
+                        UsersWhichInSubject = new List<UsersWhichInSubject>()
+                    };
+
                     ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
-                    return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml");
+                    return PartialView("~/Views/ClientPanal/UsersOfSubject.cshtml", emptyModel);
                 }
             }
         }
+
 
 
         [HttpPut]
@@ -707,8 +714,254 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                 }
             }
         }
+        [HttpPut]
+        public async Task<IActionResult> UpdateSubjectName([FromBody] UpdateSubjectName request)
+        {
+            string clientId = GetClientDataFromCookie("client_id");
+            if (clientId == null)
+            {
+                return RedirectToAction("ClientLogin");
+            }
+            var requestBody = new
+            {   client_id= clientId,
+                subject_name = request.subject_name,
+                ct_id = request.ct_id,
+               
+            };
 
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/"); // Your API base URL
 
+                try
+                {
+                    var response = await client.PutAsJsonAsync("editSubject", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        return Json(new { success = true, message = "Subject status updated successfully!" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to update Subject status. Please try again." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error occurred while updating Subject status: " + ex.Message });
+                }
+            }
+        }
+        public async Task<IActionResult> UpdateToken(getCtIdAndSubjectName request)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync("/getTokensForClient");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<getTokensForUpdateApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            var viewModel = new getTokensForUpdateModel
+                            {
+                                Info = request,
+                                TokenDetailsForUpdate = apiResponse.data
+                            };
+                            return PartialView("~/Views/ClientPanal/UpdateToken.cshtml", viewModel);
+                        }
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                            return PartialView("~/Views/ClientPanal/UpdateToken.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                        return PartialView("~/Views/ClientPanal/UpdateToken.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/ClientPanal/UpdateToken.cshtml");
+                }
+            }
+
+        }
+        public async Task<IActionResult> ProcideToUpdate(getCtIdAndSubjectNameAndTokenId request)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/");
+                try
+                {
+                    var response = await client.GetAsync($"/getTokenById?token_id={request.token_id}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadAsStringAsync();
+                        var apiResponse = JsonSerializer.Deserialize<GetTokenDetailsForUpdateApiResponse>(result);
+
+                        if (apiResponse?.success == true)
+                        {
+                            var viewModel = new getTokensDetailsForUpdateModel
+                            {
+                                Info = request,
+                                GetTokenDetailsForUpdate = apiResponse.data // No need for a list
+                            };
+                            return PartialView("~/Views/ClientPanal/ProcideToUpdate.cshtml", viewModel);
+                        }
+
+                        else
+                        {
+                            ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                            return PartialView("~/Views/ClientPanal/ProcideToUpdate.cshtml");
+                        }
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Failed to fetch Users. Please try again later.";
+                        return PartialView("~/Views/ClientPanal/ProcideToUpdate.cshtml");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    ViewBag.ErrorMessage = "Server connection error: " + ex.Message;
+                    return PartialView("~/Views/ClientPanal/ProcideToAdd.cshtml");
+                }
+            }
+
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> ProcideToUpdateProcess([FromBody] UpdateTokenRequestBody request)
+        {
+           
+            var requestBody = new
+            {
+                token_id = request.token_id,
+                ct_id = request.ct_id,
+
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/"); // Your API base URL
+
+                try
+                {
+                    var response = await client.PutAsJsonAsync("updateToken", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        return Json(new { success = true, message = "Subject token updated successfully!",ct_id= request.ct_id,subject_name=request.subject_name });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to update Subject token. Please try again." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error occurred while updating Subject token: " + ex.Message });
+                }
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddUserInSubject([FromBody] AddUserInSubjectRequestBody request)
+        {
+            string clientId = GetClientDataFromCookie("client_id");
+            if (clientId == null)
+            {
+                return Json(new { success = false, message = "Unauthorized. Please log in again." });
+            }
+
+            var requestBody = new
+            {
+                rfid = request.rfid,
+                ct_id = request.ct_id,
+                designation = request.designation,
+                client_id = clientId,
+                user_id = request.user_id
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/"); // Your API base URL
+
+                try
+                {
+                    var response = await client.PostAsJsonAsync("addUserSubject", requestBody);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse>(result, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (apiResponse?.success == true)
+                    {
+                        return Json(new { success = true, message = "User added successfully!" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to add user. Please try again." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error occurred while adding user: " + ex.Message });
+                }
+            }
+        }
+
+        public IActionResult ViewAttendance(int ct_id, string subject_name)
+        {
+            var model = new getCtIdAndSubjectName
+            {
+                ct_id = ct_id,
+                subject_name = subject_name
+            };
+            return View("~/Views/ClientPanal/ViewAttendance.cshtml",model);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAttendance(int ct_id, DateTime from_date, DateTime to_date)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:3000/"); // Your API base URL
+
+                try
+                {
+                    // Constructing URL with query parameters
+                    string url = $"getPunchRecordBySubject?ct_id={ct_id}&from_date={from_date:yyyy-MM-dd}&to_date={to_date:yyyy-MM-dd}";
+
+                    // Sending GET request to the API
+                    var response = await client.GetAsync(url);
+                    var result = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<AttendanceRecordapiresponse>(result);
+
+                    if (apiResponse?.success == true)
+                    {
+                        return Json(new { success = true, data = apiResponse.data });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Failed to retrieve attendance records." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error occurred while fetching attendance: " + ex.Message });
+                }
+            }
+        }
 
     }
     public class EditUserRequest
@@ -723,5 +976,26 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
         public string user_id { get; set; }
         public string ct_id { get; set; }
        
+    }
+    public class UpdateSubjectName
+    {
+        public string subject_name { get; set; }
+        public string ct_id { get; set; }
+
+    }
+    public class UpdateTokenRequestBody
+    {
+        public string token_id { get; set; }
+        public string ct_id { get; set; }
+        public string subject_name { get; set; }
+
+    }
+    public class AddUserInSubjectRequestBody
+    {
+        public string user_id { get; set; }
+        public string ct_id { get; set; }
+        public string rfid { get; set; }
+        public string designation { get; set; }
+
     }
 }

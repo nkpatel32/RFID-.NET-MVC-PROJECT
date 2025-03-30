@@ -11,7 +11,8 @@
 <body class="bg-gray-100 flex">
 
     <!-- Sidebar -->
-    <div id="sidebar" class="h-screen bg-black text-white p-4 w-64 flex flex-col transition-all duration-300 ease-in-out">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed top-0 left-0 h-full bg-black text-white p-4 w-64 flex flex-col transition-all duration-300 ease-in-out">
         <!-- Title Row with Toggle Button -->
         <div class="flex items-center justify-between mb-4">
             <span class="text-white text-2xl font-bold" id="sidebarTitle">Client</span>
@@ -35,7 +36,7 @@
             </li>
             <li>
                 <a href="@Url.Action("EditProfile", "Client")" class="flex items-center gap-2 p-2 rounded w-full">
-                    <i class="fas fa-key w-6 h-6"></i>
+                    <i class="fas fa-user-cog w-6 h-6"></i>
                     <span class="sidebar-text">Edit Profile</span>
                 </a>
             </li>
@@ -63,14 +64,15 @@
 
         <div class="mb-4">
             <a href="@Url.Action("Logout", "Admin")" class="flex items-center gap-2 w-full p-2 rounded">
-                <i class="fas fa-sign-out-alt w-6 h-6"></i>
+                <i class="fas fa-sign-out-alt text-lg"></i>
                 <span class="sidebar-text">Logout</span>
             </a>
         </div>
 
+
         <!-- Profile Section -->
         <div id="adminInfo" class="flex items-center bg-gray-800 p-2 rounded-lg mt-2">
-            <i class="fas fa-user-circle w-10 h-10 text-white"></i>
+            <i class="fas fa-user-circle w-15 h-15 text-white"></i>
             <div class="ml-3">
                 <p class="font-bold">Admin Name</p>
                 <p class="text-sm text-gray-400">Admin</p>
@@ -79,10 +81,9 @@
     </div>
 
     <!-- Main Content Area -->
-    <div id="mainContentArea" class="flex-1 ml-1 p-8">
-        @RenderBody()  <!-- This is where the content from child views (like AdminDashboard.cshtml) will be injected -->
+    <div id="mainContentArea" class="flex-1 p-8 transition-all duration-300 ease-in-out ml-64">
+        @RenderBody()
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             let isOpen = true;
@@ -100,27 +101,31 @@
 
             // Sidebar toggle functionality
             if (toggleButton) {
-                toggleButton.addEventListener('click', function () {
-                    isOpen = !isOpen;
+                        toggleButton.addEventListener('click', function () {
+            isOpen = !isOpen;
 
-                    if (isOpen) {
-                        sidebar.classList.remove('w-16');
-                        sidebar.classList.add('w-64');
-                        searchContainer.classList.remove('hidden');
-                        adminInfo.classList.remove('hidden');
-                        sidebarTitle.classList.remove('hidden');
-                        dropdownArrow.classList.remove('hidden');
-                        sidebarTextElements.forEach(el => el.classList.remove('hidden'));
-                    } else {
-                        sidebar.classList.remove('w-64');
-                        sidebar.classList.add('w-16');
-                        searchContainer.classList.add('hidden');
-                        adminInfo.classList.add('hidden');
-                        sidebarTitle.classList.add('hidden');
-                        dropdownArrow.classList.add('hidden');
-                        sidebarTextElements.forEach(el => el.classList.add('hidden'));
-                    }
-                });
+            if (isOpen) {
+                sidebar.classList.remove('w-16');
+                sidebar.classList.add('w-64');
+                mainContentArea.classList.remove('ml-16');
+                mainContentArea.classList.add('ml-64');
+                searchContainer.classList.remove('hidden');
+                adminInfo.classList.remove('hidden');
+                sidebarTitle.classList.remove('hidden');
+                dropdownArrow.classList.remove('hidden');
+                sidebarTextElements.forEach(el => el.classList.remove('hidden'));
+            } else {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-16');
+                mainContentArea.classList.remove('ml-64');
+                mainContentArea.classList.add('ml-16');
+                searchContainer.classList.add('hidden');
+                adminInfo.classList.add('hidden');
+                sidebarTitle.classList.add('hidden');
+                dropdownArrow.classList.add('hidden');
+                sidebarTextElements.forEach(el => el.classList.add('hidden'));
+            }
+        });
             }
 
             // Dropdown toggle functionality

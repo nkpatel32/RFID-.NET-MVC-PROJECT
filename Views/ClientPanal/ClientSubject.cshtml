@@ -3,6 +3,7 @@
 @{
     Layout = "~/Views/ClientPanal/_ClientLayout.cshtml";
 }
+
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
@@ -16,71 +17,146 @@
         @TempData["ErrorMessage"]
     </div>
 }
+
 <div class="p-6 bg-white rounded-lg shadow-lg">
     <div class="flex justify-between items-center p-4">
         <h1 class="text-xl font-semibold"> @Model.Info.subject_name</h1>
         <h1 class="text-xl font-semibold"> @Model.Info.ct_id</h1>
 
         <a href="@Url.Action("getUsersWhichInSubject", "Client", new { ct_id = Model.Info.ct_id, subject_name = Model.Info.subject_name })">
-
-        <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-            Users
+            <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                Users
+            </button>
+        </a>
+        <a href="@Url.Action("UpdateToken", "Client", new { ct_id = Model.Info.ct_id, subject_name = Model.Info.subject_name })">
+        <button class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-green-600">
+            Update Token
         </button>
         </a>
-        <button class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-green-600">
-            Upade token
-        </button>
-        <button onClick={handleEditSubject}
+        <button onClick="openEditSubjectModal()"
                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
             Edit Subject
         </button>
-            
+        <a href="@Url.Action("ViewAttendance", "Client", new { ct_id = Model.Info.ct_id, subject_name = Model.Info.subject_name })">
         <button class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-green-600">
             Attendance
         </button>
+        </a>
     </div>
-<div class="mt-4">
-    <h3 class="text-xl font-semibold">Token Details</h3>
-    <table class="min-w-full table-auto mt-4 border-collapse">
-        <thead>
-            <tr class="border-b border-black">
-                <th class="px-4 py-2 text-left font-semibold">Attribute</th>
-                <th class="px-4 py-2 text-left font-semibold">Value</th>
-            </tr>
-        </thead>
-        <tbody>
+
+    <!-- Token Details Table -->
+    <div class="mt-4">
+        <h3 class="text-xl font-semibold">Token Details</h3>
+        <table class="min-w-full table-auto mt-4 border-collapse">
+            <thead>
+                <tr class="border-b border-black">
+                    <th class="px-4 py-2 text-left font-semibold">Attribute</th>
+                    <th class="px-4 py-2 text-left font-semibold">Value</th>
+                </tr>
+            </thead>
+            <tbody>
                 @foreach (var subject in Model.SubjectDetails)
-            {
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Pass Key</td>
-                    <td class="px-4 py-2 text-green-500">@subject.pass_key</td>
-                </tr>
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Purchase Date</td>
-                    <td class="px-4 py-2">@subject.purchase_date</td>
-                </tr>
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Expire Date</td>
-                    <td class="px-4 py-2 font-bold text-red-500">@subject.expire_date</td>
-                </tr>
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Price</td>
-                    <td class="px-4 py-2">@subject.price</td>
-                </tr>
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Duration (Days)</td>
-                    <td class="px-4 py-2">@subject.duration_day days</td>
-                </tr>
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Description</td>
-                    <td class="px-4 py-2">@subject.description</td>
-                </tr>
-                <tr class="border-b border-black">
-                    <td class="px-4 py-2 font-semibold">Token Name</td>
-                    <td class="px-4 py-2">@subject.name</td>
-                </tr>
+                {
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Pass Key</td>
+                        <td class="px-4 py-2 text-green-500">@subject.pass_key</td>
+                    </tr>
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Purchase Date</td>
+                        <td class="px-4 py-2">@subject.purchase_date</td>
+                    </tr>
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Expire Date</td>
+                        <td class="px-4 py-2 font-bold text-red-500">@subject.expire_date</td>
+                    </tr>
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Price</td>
+                        <td class="px-4 py-2">@subject.price</td>
+                    </tr>
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Duration (Days)</td>
+                        <td class="px-4 py-2">@subject.duration_day days</td>
+                    </tr>
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Description</td>
+                        <td class="px-4 py-2">@subject.description</td>
+                    </tr>
+                    <tr class="border-b border-black">
+                        <td class="px-4 py-2 font-semibold">Token Name</td>
+                        <td class="px-4 py-2">@subject.name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal for Editing Subject -->
+<div id="editSubjectModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex justify-center items-center">
+    <div class="bg-white rounded-lg p-6 w-1/3">
+        <h3 class="text-xl font-semibold mb-4">Edit Subject</h3>
+        <form id="editSubjectForm">
+            <input type="hidden" id="subjectId" value="@Model.Info.ct_id" />
+
+            <div class="mb-4">
+                <label for="subjectName" class="block text-sm font-medium text-gray-700">Subject Name</label>
+                <input type="text" id="subjectName" name="subjectName" class="mt-1 p-2 w-full border rounded-md" value="@Model.Info.subject_name" required />
+            </div>
+
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeEditSubjectModal()" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Function to open the Edit Subject modal
+    function openEditSubjectModal() {
+        document.getElementById("editSubjectModal").classList.remove("hidden");
+    }
+
+    // Function to close the Edit Subject modal
+    function closeEditSubjectModal() {
+        document.getElementById("editSubjectModal").classList.add("hidden");
+    }
+
+    // Handle form submission for editing the subject
+    document.getElementById("editSubjectForm").onsubmit = function(event) {
+        event.preventDefault();
+        const subjectName = document.getElementById("subjectName").value;
+        const subjectId = document.getElementById("subjectId").value;
+
+        // You can use fetch or AJAX here to send the update request to your server
+        fetch('@Url.Action("UpdateSubjectName", "Client")', {
+            method: 'PUT', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ct_id: subjectId,
+                subject_name: subjectName
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Subject updated successfully!');
+                window.location.href="ClientDashboard";
+            } else {
+                alert('Failed to update subject!');
             }
-        </tbody>
-    </table>
-</div>
-</div>
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the subject.');
+        });
+
+        closeEditSubjectModal(); // Close the modal after submission
+    };
+</script>

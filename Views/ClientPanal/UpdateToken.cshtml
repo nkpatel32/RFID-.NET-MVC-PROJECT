@@ -1,0 +1,28 @@
+﻿@model RFID_.NET_MVC_PROJECT.Models.getTokensForUpdateModel
+
+@{
+    Layout = "~/Views/ClientPanal/_ClientLayout.cshtml";
+    ViewBag.Title = "Update Token";
+}
+
+<h2 class="text-center text-3xl font-bold mb-6">Token Update For  @Model.Info.subject_name </h2>
+<p>Ct_id: @Model.Info.ct_id</p>
+
+
+<div class="flex flex-wrap justify-center gap-6 p-6">
+    @foreach (var token in Model.TokenDetailsForUpdate)
+    {
+        <div key="@token.token_id"
+             class="border border-gray-200 shadow-lg rounded-lg p-6 w-80 text-center hover:shadow-xl transition-all">
+            <h3 class="text-xl font-bold text-gray-800">@token.name</h3>
+            <p class="text-gray-600 mt-2">@token.description</p>
+            <h2 class="text-3xl font-extrabold text-green-600 mt-4">$@token.price</h2>
+            <p class="text-gray-500 text-sm mt-1">@token.duration_day Days Access</p>
+            <button class="bg-green-600 text-white px-4 py-2 rounded-md mt-4 hover:bg-green-700 transition">
+                <a href="@Url.Action("ProcideToUpdate", new { token_id = token.token_id,subject_name=Model.Info.subject_name,ct_id=Model.Info.ct_id })" class="text-white">
+                    Get Started
+                </a>
+            </button>
+        </div>
+    }
+</div>

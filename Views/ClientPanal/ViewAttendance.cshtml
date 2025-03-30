@@ -1,0 +1,186 @@
+﻿@model RFID_.NET_MVC_PROJECT.Models.getCtIdAndSubjectName
+@{
+    Layout = "~/Views/ClientPanal/_ClientLayout.cshtml";
+}
+
+<div class="container p-4">
+    <h2 class="text-center font-semibold text-2xl mb-6">Attendance for @Model.subject_name</h2>
+
+    <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+        <input type="hidden" id="ct_id" name="ct_id" value="@Model.ct_id" />
+
+        <div class="flex items-center">
+            <label for="fromDate" class="mr-2 font-medium">From Date:</label>
+            <input type="date" id="from_date" name="from_date" class="p-2 border rounded-md" required />
+        </div>
+        <div class="flex items-center">
+            <label for="toDate" class="mr-2 font-medium">To Date:</label>
+            <input type="date" id="to_date" name="to_date" class="p-2 border rounded-md" required />
+        </div>
+        <button id="getAttendance" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">
+            Get Attendance
+        </button>
+    </div>
+
+    <div class="flex justify-center mb-4">
+        <input type="text" id="searchInput" placeholder="Search by ID, Name, or Designation"
+               class="p-2 border rounded-md w-1/3" />
+    </div>
+
+    <div id="attendanceResult" class="mt-4"></div>
+</div>
+
+<div id="paginationControls" class="flex justify-center space-x-4 mt-4 hidden">
+    <button id="prevPage" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" disabled>Previous</button>
+    <span id="pageInfo" class="text-lg font-semibold"></span>
+    <button id="nextPage" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Next</button>
+</div>
+
+<script>
+    let attendanceData = [];
+    let expandedUserIds = new Set();
+    let currentPage = 1;
+    const recordsPerPage = 5;
+
+    document.getElementById("getAttendance").addEventListener("click", async function () {
+        let ct_id = document.getElementById("ct_id").value;
+        let from_date = document.getElementById("from_date").value;
+        let to_date = document.getElementById("to_date").value;
+
+        if (!from_date || !to_date) {
+            alert("Please select both From and To dates.");
+            return;
+        }
+
+        let url = `@Url.Action("GetAttendance", "Client")?ct_id=${ct_id}&from_date=${from_date}&to_date=${to_date}`;
+
+        try {
+            let response = await fetch(url);
+            let result = await response.json();
+
+            if (result.success) {
+                attendanceData = result.data;
+                currentPage = 1;
+                displayAttendance();
+            } else {
+                document.getElementById("attendanceResult").innerHTML = `<p class='text-red-500'>${result.message}</p>`;
+            }
+        } catch (error) {
+            console.error("Error fetching attendance:", error);
+            document.getElementById("attendanceResult").innerHTML = `<p class='text-red-500'>Error occurred while fetching attendance.</p>`;
+        }
+    });
+
+    function groupDataByUser() {
+        const groupedData = {};
+        attendanceData.forEach(record => {
+            if (!groupedData[record.user_id]) {
+                groupedData[record.user_id] = {
+                    user_id: record.user_id,
+                    name: record.name,
+                    designation: record.designation,
+                    punches: []
+                };
+            }
+            groupedData[record.user_id].punches.push(record);
+        });
+        return groupedData;
+    }
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+        currentPage = 1;
+        displayAttendance();
+    });
+
+    function toggleExpanded(userId) {
+        if (expandedUserIds.has(userId)) {
+            expandedUserIds.delete(userId);
+        } else {
+            expandedUserIds.add(userId);
+        }
+        displayAttendance();
+    }
+
+    function displayAttendance() {
+        let searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const groupedAttendanceData = Object.values(groupDataByUser()).filter(user =>
+            user.name.toLowerCase().includes(searchTerm) ||
+            user.designation.toLowerCase().includes(searchTerm) ||
+            user.user_id.toString().includes(searchTerm)
+        );
+
+        let totalPages = Math.ceil(groupedAttendanceData.length / recordsPerPage);
+        let resultDiv = document.getElementById("attendanceResult");
+        resultDiv.innerHTML = "";
+
+        let startIndex = (currentPage - 1) * recordsPerPage;
+        let endIndex = startIndex + recordsPerPage;
+        let paginatedData = groupedAttendanceData.slice(startIndex, endIndex);
+
+        paginatedData.forEach(user => {
+            let isExpanded = expandedUserIds.has(user.user_id);
+            let latestPunch = user.punches.length > 0 ? new Date(user.punches[0].timestamp).toLocaleString() : "No punches";
+
+            let card = `<div class='p-4 bg-white shadow-md rounded-md mb-4'>
+    <div class='flex justify-between items-center cursor-pointer' onclick='toggleExpanded("${user.user_id}")'>
+        <h2 class='text-lg font-semibold'>${user.user_id} | ${user.name} | ${user.designation}</h2>
+        <span class='text-sm text-gray-600'>${user.punches.length} Punches | Latest Punch: ${latestPunch}</span>
+    </div>`;
+
+            if (isExpanded) {
+                let tableRows = user.punches.map(p => {
+                    let date = new Date(p.timestamp).toLocaleDateString();
+                    let time = new Date(p.timestamp).toLocaleTimeString();
+                    return `<tr class='border-t even:bg-gray-200 odd:bg-white hover:bg-gray-300'>
+                        <td class='border px-4 py-2 text-center'>${date}</td>
+                        <td class='border px-4 py-2 text-center'>${time}</td>
+                    </tr>`;
+                }).join("");
+
+                card += `<div class='mt-4'>
+                    <table class='min-w-full table-auto border'>
+                        <thead>
+                            <tr>
+                                <th class='border px-4 py-2'>Date</th>
+                                <th class='border px-4 py-2'>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>`;
+            }
+
+            card += `</div>`;
+            resultDiv.innerHTML += card;
+        });
+
+        updatePaginationControls(totalPages);
+    }
+
+    function updatePaginationControls(totalPages) {
+        let prevBtn = document.getElementById("prevPage");
+        let nextBtn = document.getElementById("nextPage");
+        let pageInfo = document.getElementById("pageInfo");
+
+        document.getElementById("paginationControls").classList.toggle("hidden", totalPages <= 1);
+
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+    }
+
+    document.getElementById("prevPage").addEventListener("click", function () {
+        if (currentPage > 1) {
+            currentPage--;
+            displayAttendance();
+        }
+    });
+
+    document.getElementById("nextPage").addEventListener("click", function () {
+        let totalPages = Math.ceil(Object.values(groupDataByUser()).length / recordsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayAttendance();
+        }
+    });
+</script>
