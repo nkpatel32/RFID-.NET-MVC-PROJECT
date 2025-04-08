@@ -523,7 +523,7 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                 }
             }
         }
-        public async Task<IActionResult> BuySubject(int token_id, string subject_name, string pass_key, string purchase_date, string expire_date)
+        public async Task<IActionResult> BuySubject(int token_id, string subject_name, string pass_key, string purchase_date, string expire_date, string razorpay_payment_id)
         {
             string clientId = GetClientDataFromCookie("client_id");
             if (clientId == null)
@@ -531,7 +531,12 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                 return RedirectToAction("ClientLogin");
             }
 
-            // Prepare the request data for the API call
+            if (string.IsNullOrEmpty(razorpay_payment_id))
+            {
+                TempData["ErrorMessage"] = "Payment not completed.";
+                return RedirectToAction("ClientDashboard");
+            }
+
             var requestBody = new
             {
                 token_id = token_id,
@@ -540,16 +545,16 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                 client_id = clientId,
                 purchase_date = purchase_date,
                 expire_date = expire_date,
-                status = "0" // assuming status is 0 initially
+                status = "0",
+                payment_id = razorpay_payment_id
             };
 
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri("http://localhost:3000/");  // Your Express.js API URL
+                client.BaseAddress = new Uri("http://localhost:3000/"); // Your Express.js API base URL
 
                 try
                 {
-                    // Send the POST request with the request body serialized as JSON
                     var response = await client.PostAsJsonAsync("addNewSubject", requestBody);
 
                     if (response.IsSuccessStatusCode)
@@ -563,18 +568,17 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                         }
                         else
                         {
-                            TempData["ErrorMessage"] = $"Failed to add new subject";
+                            TempData["ErrorMessage"] = "Failed to add new subject.";
                         }
                     }
                     else
                     {
-                        // Handle unsuccessful HTTP response (non-2xx)
-                        TempData["ErrorMessage"] = "Failed to connect to the API or unexpected API response.";
+                        TempData["ErrorMessage"] = "API connection failed.";
                     }
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Error occurred while updating user status: " + ex.Message;
+                    TempData["ErrorMessage"] = "Error: " + ex.Message;
                 }
             }
 
@@ -842,19 +846,24 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
         }
 
         [HttpPut]
+        [HttpPut]
         public async Task<IActionResult> ProcideToUpdateProcess([FromBody] UpdateTokenRequestBody request)
         {
-           
+            if (string.IsNullOrEmpty(request.razorpay_payment_id))
+            {
+                return Json(new { success = false, message = "Payment was not completed." });
+            }
+
             var requestBody = new
             {
                 token_id = request.token_id,
                 ct_id = request.ct_id,
-
+                payment_id = request.razorpay_payment_id // optional: store payment proof
             };
 
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri("http://localhost:3000/"); // Your API base URL
+                client.BaseAddress = new Uri("http://localhost:3000/");
 
                 try
                 {
@@ -864,19 +873,26 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
 
                     if (apiResponse?.success == true)
                     {
-                        return Json(new { success = true, message = "Subject token updated successfully!",ct_id= request.ct_id,subject_name=request.subject_name });
+                        return Json(new
+                        {
+                            success = true,
+                            message = "Subject token updated successfully!",
+                            ct_id = request.ct_id,
+                            subject_name = request.subject_name
+                        });
                     }
                     else
                     {
-                        return Json(new { success = false, message = "Failed to update Subject token. Please try again." });
+                        return Json(new { success = false, message = "Failed to update Subject token." });
                     }
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = "Error occurred while updating Subject token: " + ex.Message });
+                    return Json(new { success = false, message = "Error occurred: " + ex.Message });
                 }
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> AddUserInSubject([FromBody] AddUserInSubjectRequestBody request)
         {
@@ -988,6 +1004,7 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
         public string token_id { get; set; }
         public string ct_id { get; set; }
         public string subject_name { get; set; }
+        public string razorpay_payment_id { get; set; }
 
     }
     public class AddUserInSubjectRequestBody

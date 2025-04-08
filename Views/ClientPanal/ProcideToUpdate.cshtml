@@ -28,18 +28,37 @@
         Proceed to Payment
     </button>
 
-    <p class="mt-4 text-gray-500">
-        Click to proceed to payment for your token.
-    </p>
+    <p class="mt-4 text-gray-500">Click to proceed to payment for your token.</p>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-    document.getElementById('paymentBtn').addEventListener('click', async function () {
+    document.getElementById('paymentBtn').addEventListener('click', function () {
+        const options = {
+            "key": "rzp_test_YwZhdfMsPm2X45", // ✅ Replace with your Razorpay key
+            "amount": @Model.GetTokenDetailsForUpdate?.price * 100, // price in paise
+            "currency": "INR",
+            "name": "RFID Attendance",
+            "description": "Update Token - @Model.GetTokenDetailsForUpdate?.name",
+            "handler": function (response) {
+                // After successful payment
+                callUpdateTokenAPI(response.razorpay_payment_id);
+            },
+            "theme": {
+                "color": "#0f9d58"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    });
+
+    function callUpdateTokenAPI(paymentId) {
         const tokenId = "@(Model.GetTokenDetailsForUpdate?.token_id)";
         const ctId = "@(Model.Info?.ct_id)";
         const subjectName = "@(Model.Info?.subject_name)";
 
-        const response = await fetch('@Url.Action("ProcideToUpdateProcess", "Client")', {
+        fetch('@Url.Action("ProcideToUpdateProcess", "Client")', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -48,23 +67,23 @@
             body: JSON.stringify({
                 token_id: tokenId,
                 ct_id: ctId,
-                subject_name: subjectName
+                subject_name: subjectName,
+                razorpay_payment_id: paymentId
             })
-        });
-
-        if (response.ok) {
-            const result = await response.json();
+        })
+        .then(res => res.json())
+        .then(result => {
             if (result.success) {
                 alert(result.message);
                 window.location.href = '@Url.Action("ClientSubject", "Client")' +
-                                       '?ct_id=' + encodeURIComponent(result.ct_id) +
-                                       '&subject_name=' + encodeURIComponent(result.subject_name);
+                    '?ct_id=' + encodeURIComponent(result.ct_id) +
+                    '&subject_name=' + encodeURIComponent(result.subject_name);
             } else {
                 alert(result.message);
             }
-        } else {
-            alert("Failed to process the request. Please try again.");
-        }
-    });
+        })
+        .catch(error => {
+            alert("Failed to update token: " + error);
+        });
+    }
 </script>
-

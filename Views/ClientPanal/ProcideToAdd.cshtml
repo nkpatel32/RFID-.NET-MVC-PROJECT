@@ -2,6 +2,7 @@
 @{
     Layout = "~/Views/ClientPanal/_ClientLayout.cshtml";
 }
+
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
@@ -15,6 +16,7 @@
         @TempData["ErrorMessage"]
     </div>
 }
+
 <div class="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg text-center mt-10">
     <h1 class="text-2xl font-bold mb-2">Buy Token</h1>
 
@@ -23,20 +25,9 @@
 
     <form action="@Url.Action("BuySubject", "Client")" method="post" class="mt-4 space-y-4">
         <input type="hidden" name="token_id" value="@Model.token_id" />
-
-        <input type="hidden" id="purchaseDate" name="purchase_date" value="" />
-
-        <input type="hidden" id="expireDate" name="expire_date" value="" />
-
-        <div class="text-left">
-            <label class="block font-semibold">Pass Key:</label>
-            <input type="text"
-                   id="passKey"
-                   name="pass_key"
-                   value=""
-                   readonly
-                   class="w-full p-2 border rounded bg-gray-100 cursor-not-allowed border-black" />
-        </div>
+        <input type="hidden" id="purchaseDate" name="purchase_date" />
+        <input type="hidden" id="expireDate" name="expire_date" />
+        <input type="hidden" id="passKey" name="pass_key" />
 
         <div class="text-left">
             <label class="block font-semibold">Subject Name:</label>
@@ -47,8 +38,9 @@
                    required />
         </div>
 
-        <button type="submit"
-                class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
+        <button type="button"
+                class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+                onclick="initiatePayment()">
             Proceed to Payment
         </button>
     </form>
@@ -56,28 +48,56 @@
     <p class="mt-4 text-gray-500">Fill in the details to purchase your token.</p>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+    const passKey = generateRandomPasskey();
+    document.getElementById('passKey').value = passKey;
+
+    const purchaseDate = new Date();
+    document.getElementById('purchaseDate').value = purchaseDate.toISOString().split('T')[0];
+
+    const expireDate = new Date(purchaseDate);
+    expireDate.setDate(expireDate.getDate() + @Model.duration_day);
+    document.getElementById('expireDate').value = expireDate.toISOString().split('T')[0];
+
     function generateRandomPasskey() {
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let passkey = "";
-        for (let i = 0; i < 10; i++) {  // Length of passkey = 10
+        for (let i = 0; i < 10; i++) {
             const randomIndex = Math.floor(Math.random() * chars.length);
             passkey += chars[randomIndex];
         }
         return passkey;
     }
 
-    // Set the value of the Pass Key field to the generated random passkey
-    document.getElementById('passKey').value = generateRandomPasskey();
+    function initiatePayment() {
+        const options = {
+            "key": "rzp_test_YwZhdfMsPm2X45", // 🔁 Replace with your Razorpay public key
+            "amount": @Model.price * 100, // in paise
+            "currency": "INR",
+            "name": "RFID Attendance",
+            "description": "Purchase Token - @Model.name",
+            "handler": function (response) {
+                submitFormAfterPayment(response.razorpay_payment_id);
+            },
+            "theme": {
+                "color": "#0f9d58"
+            }
+        };
 
-    // Get today's date
-    const purchaseDate = new Date();
-    // Set the purchase date field value
-    document.getElementById('purchaseDate').value = purchaseDate.toISOString().split('T')[0];  // Format: YYYY-MM-DD
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
 
-    // Calculate the expire date by adding the duration in days
-    const expireDate = new Date(purchaseDate);
-    expireDate.setDate(expireDate.getDate() + @Model.duration_day);  // Add duration_day to the current date
-    // Set the expire date field value
-    document.getElementById('expireDate').value = expireDate.toISOString().split('T')[0];  // Format: YYYY-MM-DD
+    function submitFormAfterPayment(paymentId) {
+        const form = document.querySelector("form");
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "razorpay_payment_id";
+        hiddenInput.value = paymentId;
+        form.appendChild(hiddenInput);
+
+        form.submit();
+    }
 </script>
