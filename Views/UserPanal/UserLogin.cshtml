@@ -7,7 +7,22 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="flex min-h-screen">
+<style>
+    html, body {
+        height: 100%;
+        overflow: hidden; /* Disable scrolling */
+        margin: 0;
+        padding: 0;
+    }
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+</style>
+
+<div class="flex h-screen overflow-hidden">
     <!-- Left Side: Login Form -->
     <div class="w-1/2 flex justify-center items-center bg-white p-8">
         <div class="max-w-md w-full">
@@ -68,7 +83,7 @@
 
     <!-- Right Side: Image -->
     <div class="w-1/2 bg-gray-100 flex justify-center items-center">
-        <img src="~/images/login_img.png" alt="Login Illustration" class="object-cover w-full h-full">
+        <img src="~/images/login_img.png" alt="Login Illustration" class="w-full h-full object-cover">
     </div>
 </div>
 

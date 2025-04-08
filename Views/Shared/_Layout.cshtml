@@ -7,6 +7,7 @@
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
 
     <!-- Custom Styles -->
     <style>
@@ -14,24 +15,53 @@
             font-family: Arial, sans-serif;
         }
     </style>
+
+    <style>
+
+        /* width */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #ccc;
+            border-radius: 5px;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: green;
+            border-radius: 24px;
+        }
+        /* To handle height for vertical scrollbar, you can control the thumb height */
+        ::-webkit-scrollbar-thumb {
+            max-height: 200px; /* Minimum height of the thumb handle */
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
-
     <nav class="bg-black text-white p-4 shadow-md flex justify-between items-center">
-        <h1 class="text-xl font-bold text-green-400">RFID SYSTEM</h1>
+        <a asp-controller="Home" asp-action="Index" class="text-xl font-bold text-green-400 hover:text-green-600">
+            RFID SYSTEM
+        </a>
         <div class="space-x-4">
             <a asp-controller="Home" asp-action="Product" class="hover:text-green-400">Product</a>
             <a asp-controller="Home" asp-action="Feature" class="hover:text-green-400">Feature</a>
             <a asp-controller="Home" asp-action="Resources" class="hover:text-green-400">Resource</a>
             <a asp-controller="Home" asp-action="Pricing" class="hover:text-green-400">Pricing</a>
-
-            <a asp-controller="Admin" asp-action="AdminLogin" class="hover:text-green-400">Admin</a>
+            <a asp-controller="Home" asp-action="Contact" class="hover:text-green-400">Contact</a>
         </div>
-        <div class="space-x-4">
+        <div class="space-x-4 flex items-center">
             <a asp-controller="Client" asp-action="ClientLogin" class="bg-green-500 hover:bg-blue-600 text-white py-2 px-4 rounded">Client</a>
             <a asp-controller="User" asp-action="UserLogin" class="bg-green-500 hover:bg-blue-600 text-white py-2 px-4 rounded">User</a>
+            <!-- Admin link moved after User, with icon -->
+            <a asp-controller="Admin" asp-action="AdminLogin" class="text-white hover:text-green-400 flex items-center gap-1">
+                <i class="fas fa-user-shield"></i>
+            </a>
         </div>
     </nav>
+
 
 
     <!-- Main Content -->
