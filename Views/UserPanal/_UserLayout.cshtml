@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.4/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>@ViewData["Title"]</title>
+</head>
+<body class="bg-gray-100 flex">
+    <div id="sidebar" class="fixed top-0 left-0 h-full bg-black text-white p-4 w-64 flex flex-col transition-all duration-300 ease-in-out overflow-hidden">
+        <!-- Title Row with Toggle Button -->
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-white text-2xl font-bold" id="sidebarTitle">User</span>
+            <button id="toggleSidebar" class="p-2 rounded hover:bg-gray-700 ml-auto">
+                <i class="fas fa-bars text-white w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Search Bar / Search Icon -->
+        <div class="mb-4" id="searchContainer">
+            <input type="text" placeholder="Search..." class="w-full p-2 rounded bg-gray-800 text-white focus:outline-none" />
+        </div>
+
+        <!-- Sidebar Links -->
+        <ul class="space-y-3 flex-1">
+            <li>
+                <a href="@Url.Action("EditPassword", "User")" class="flex items-center gap-2 p-2 rounded w-full hover:text-green-400">
+                    <i class="fas fa-key w-6 h-6"></i>
+                    <span class="sidebar-text">Edit Password</span>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("EditProfile", "User")" class="flex items-center gap-2 p-2 rounded w-full hover:text-green-400">
+                    <i class="fas fa-user w-6 h-6"></i>
+                    <span class="sidebar-text">Edit Profile</span>
+                </a>
+            </li>
+            <!-- View Subject Dropdown -->
+            <li id="viewSubjectDropdown">
+                <div class="flex items-center justify-between cursor-pointer p-2 rounded w-full hover:text-green-400">
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-book-open w-6 h-6"></i>
+                        <span class="sidebar-text">View Subject</span>
+                    </span>
+                    <span id="dropdownArrow" class="text-white">▼</span>
+                </div>
+                <ul id="dropdownMenu" class="pl-6 mt-2 space-y-2 hidden">
+                </ul>
+            </li>
+        </ul>
+
+        <!-- Logout and Profile Section moved to the bottom -->
+        <div class="mt-auto">
+            <div class="mb-4">
+                <a href="@Url.Action("Logout", "User")" class="flex items-center gap-2 w-full p-2 rounded hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-6 h-6"></i>
+                    <span class="sidebar-text">Logout</span>
+                </a>
+            </div>
+            <!-- Profile Section -->
+            <div id="adminInfo" class="flex items-center bg-gray-800 p-2 rounded-lg mt-2">
+                <i class="fas fa-user-circle w-10 h-10 text-white"></i>
+                <div class="ml-3">
+                    <p class="font-bold">Admin Name</p>
+                    <p class="text-sm text-gray-400">Admin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="mainContentArea" class="flex-1 ml-64 p-8">
+        @RenderBody()  <!-- This is where the content from child views (like AdminDashboard.cshtml) will be injected -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let isOpen = true;
+            let isDropdownOpen = false;
+
+            const sidebar = document.getElementById('sidebar');
+            const searchContainer = document.getElementById('searchContainer');
+            const adminInfo = document.getElementById('adminInfo');
+            const sidebarTitle = document.getElementById('sidebarTitle');
+            const sidebarTextElements = document.querySelectorAll('.sidebar-text');
+            const toggleButton = document.getElementById('toggleSidebar');
+
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const dropdownArrow = document.getElementById('dropdownArrow');
+
+            // Sidebar toggle functionality
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function () {
+                    isOpen = !isOpen;
+
+                    if (isOpen) {
+                        sidebar.classList.remove('w-16');
+                        sidebar.classList.add('w-64');
+                        searchContainer.classList.remove('hidden');
+                        adminInfo.classList.remove('hidden');
+                        sidebarTitle.classList.remove('hidden');
+                        dropdownArrow.classList.remove('hidden');
+                        sidebarTextElements.forEach(el => el.classList.remove('hidden'));
+                    } else {
+                        sidebar.classList.remove('w-64');
+                        sidebar.classList.add('w-16');
+                        searchContainer.classList.add('hidden');
+                        adminInfo.classList.add('hidden');
+                        sidebarTitle.classList.add('hidden');
+                        dropdownArrow.classList.add('hidden');
+                        sidebarTextElements.forEach(el => el.classList.add('hidden'));
+                    }
+                });
+            }
+
+            // Dropdown toggle functionality
+            const viewSubjectDropdown = document.getElementById('viewSubjectDropdown');
+            if (viewSubjectDropdown) {
+                viewSubjectDropdown.addEventListener('click', function () {
+                    isDropdownOpen = !isDropdownOpen;
+                    if (isDropdownOpen) {
+                        dropdownMenu.classList.remove('hidden');
+                        dropdownArrow.textContent = '▲';
+                    } else {
+                        dropdownMenu.classList.add('hidden');
+                        dropdownArrow.textContent = '▼';
+                    }
+                });
+            }
+
+
+            fetch('@Url.Action("GetSubject", "User")')
+                .then(response => response.json())
+                .then(subjects => {
+                    console.log(subjects);
+                    if (subjects && subjects.length > 0) {
+                        subjects.forEach(subject => {
+                            const listItem = document.createElement('li');
+                            listItem.classList.add('cursor-pointer', 'p-2', 'rounded', 'hover:text-green-400', 'flex', 'items-center', 'gap-2');
+
+                            const icon = document.createElement('i');
+                            icon.classList.add('fas', 'fa-pencil-alt', 'text-red-400', 'w-5', 'h-5');
+
+                            const span = document.createElement('span');
+                            span.classList.add('sidebar-text');
+                            span.textContent = subject.subject_name;
+
+                            listItem.setAttribute('data-id', subject.ct_id);
+                            listItem.addEventListener('click', function () {
+                                window.location.href = '@Url.Action("UserSubject", "User")' +
+                                    '?ct_id=' + encodeURIComponent(subject.ct_id) +
+                                    '&subject_name=' + encodeURIComponent(subject.subject_name);
+                            });
+
+                            listItem.appendChild(icon);
+                            listItem.appendChild(span);
+                            dropdownMenu.appendChild(listItem);
+                        });
+                    }
+                });
+        });
+    </script>
+</body>
+</html>

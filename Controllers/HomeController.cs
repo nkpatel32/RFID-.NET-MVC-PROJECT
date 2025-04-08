@@ -8,5 +8,24 @@ namespace RFIDSystem.Controllers
         {
             return View();
         }
+        public IActionResult Product()
+        {
+            return View();
+        }
+
+        public IActionResult Feature()
+        {
+            return View();
+        }
+
+        public IActionResult Resources()
+        {
+            return View();
+        }
+
+        public IActionResult Pricing()
+        {
+            return View();
+        }
     }
 }

@@ -1,0 +1,52 @@
+﻿
+@{
+    Layout = "~/Views/UserPanal/_UserLayout.cshtml";
+    ViewData["Title"] = "Edit Profile";
+}
+
+
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 class="text-xl font-semibold mb-4">Edit Profile</h2>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <p class="text-green-500 text-center"> @TempData["SuccessMessage"]</p>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <p class="text-red-500 text-center">@TempData["ErrorMessage"] != null</p>
+        }
+        <form method="post" action="@Url.Action("UpdateUser", "User")">
+            <label class="block mb-2">Full Name</label>
+            <input type="text"
+                   placeholder="Enter your full name"
+                   class="w-full p-2 border rounded mb-4"
+                   name="name"
+                   value="@ViewBag.userName" />
+
+            <label class="block mb-2">Email Address*</label>
+            <input type="email"
+                   placeholder="Enter your email address"
+                   class="w-full p-2 border rounded mb-4"
+                   name="email"
+                   value="@ViewBag.userEmail" />
+
+            <label class="block mb-2">Mobile Number*</label>
+            <input type="tel"
+                   placeholder="Enter your mobile number"
+                   class="w-full p-2 border rounded mb-4"
+                   name="mobile"
+                   value="@ViewBag.userMobile" />
+
+
+
+            <!-- Update Profile Button -->
+            <button type="submit"
+                    class="w-full bg-green-500 text-white p-2 rounded">
+                Update Profile
+            </button>
+        </form>
+    </div>
+</div>
+>

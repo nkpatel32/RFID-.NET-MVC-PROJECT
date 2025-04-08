@@ -20,10 +20,11 @@
     <nav class="bg-black text-white p-4 shadow-md flex justify-between items-center">
         <h1 class="text-xl font-bold text-green-400">RFID SYSTEM</h1>
         <div class="space-x-4">
-            <a href="#" class="hover:text-green-400">Product</a>
-            <a href="#" class="hover:text-green-400">Feature</a>
-            <a href="#" class="hover:text-green-400">Resource</a>
-            <a href="#" class="hover:text-green-400">Pricing</a>
+            <a asp-controller="Home" asp-action="Product" class="hover:text-green-400">Product</a>
+            <a asp-controller="Home" asp-action="Feature" class="hover:text-green-400">Feature</a>
+            <a asp-controller="Home" asp-action="Resources" class="hover:text-green-400">Resource</a>
+            <a asp-controller="Home" asp-action="Pricing" class="hover:text-green-400">Pricing</a>
+
             <a asp-controller="Admin" asp-action="AdminLogin" class="hover:text-green-400">Admin</a>
         </div>
         <div class="space-x-4">

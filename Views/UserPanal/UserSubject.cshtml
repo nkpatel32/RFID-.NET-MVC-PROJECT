@@ -1,0 +1,56 @@
+﻿@model RFID_.NET_MVC_PROJECT.Models.UserSubjectViewModel
+
+@{
+    Layout = "~/Views/UserPanal/_UserLayout.cshtml";
+    ViewData["Title"] = "User Subject";
+}
+
+<div class="container mx-auto mt-6 px-4">
+    <h2 class="text-2xl font-semibold mb-6">User Dashboard</h2>
+
+    @if (Model.UserSubjectDetailForUser != null && Model.UserSubjectDetailForUser.Any())
+    {
+        @foreach (var item in Model.UserSubjectDetailForUser)
+        {
+            <div class="bg-white shadow-md rounded-lg overflow-hidden mb-4">
+                <div class="bg-gray-100 px-4 py-3">
+                    <a href="@Url.Action("viewAttendanceofUser", "User", new { ct_id = Model.Info.ct_id, subject_name = Model.Info.subject_name })" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Attendance</a>
+                </div>
+                <div class="p-6">
+                    <h4 class="text-xl font-medium mb-4">Subject Details</h4>
+
+                    <table class="w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="border border-gray-300 px-4 py-2 text-left">Attribute</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border border-gray-300">
+                                <td class="px-4 py-2 font-semibold">Designation</td>
+                                <td class="px-4 py-2 text-green-600">@item.designation</td>
+                            </tr>
+                            <tr class="border border-gray-300">
+                                <td class="px-4 py-2 font-semibold">RFID</td>
+                                <td class="px-4 py-2">@item.rfid</td>
+                            </tr>
+                            <tr class="border border-gray-300">
+                                <td class="px-4 py-2 font-semibold">CT ID</td>
+                                <td class="px-4 py-2">@Model.Info.ct_id</td>
+                            </tr>
+                            <tr class="border border-gray-300">
+                                <td class="px-4 py-2 font-semibold">Subject Name</td>
+                                <td class="px-4 py-2">@Model.Info.subject_name</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center text-gray-500">No Data Available</div>
+    }
+</div>

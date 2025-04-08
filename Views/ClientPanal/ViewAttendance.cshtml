@@ -93,12 +93,15 @@
     });
 
     function toggleExpanded(userId) {
+        userId = userId.toString(); // Ensure consistent type
+
         if (expandedUserIds.has(userId)) {
             expandedUserIds.delete(userId);
         } else {
             expandedUserIds.add(userId);
         }
-        displayAttendance();
+
+        displayAttendance(); // Re-render the UI after toggling
     }
 
     function displayAttendance() {
@@ -118,36 +121,36 @@
         let paginatedData = groupedAttendanceData.slice(startIndex, endIndex);
 
         paginatedData.forEach(user => {
-            let isExpanded = expandedUserIds.has(user.user_id);
+            let isExpanded = expandedUserIds.has(user.user_id.toString());
             let latestPunch = user.punches.length > 0 ? new Date(user.punches[0].timestamp).toLocaleString() : "No punches";
 
             let card = `<div class='p-4 bg-white shadow-md rounded-md mb-4'>
-    <div class='flex justify-between items-center cursor-pointer' onclick='toggleExpanded("${user.user_id}")'>
-        <h2 class='text-lg font-semibold'>${user.user_id} | ${user.name} | ${user.designation}</h2>
-        <span class='text-sm text-gray-600'>${user.punches.length} Punches | Latest Punch: ${latestPunch}</span>
-    </div>`;
+        <div class='flex justify-between items-center cursor-pointer' onclick='toggleExpanded("${user.user_id}")'>
+            <h2 class='text-lg font-semibold'>${user.user_id} | ${user.name} | ${user.designation}</h2>
+            <span class='text-sm text-gray-600'>${user.punches.length} Punches | Latest Punch: ${latestPunch}</span>
+        </div>`;
 
             if (isExpanded) {
                 let tableRows = user.punches.map(p => {
                     let date = new Date(p.timestamp).toLocaleDateString();
                     let time = new Date(p.timestamp).toLocaleTimeString();
                     return `<tr class='border-t even:bg-gray-200 odd:bg-white hover:bg-gray-300'>
-                        <td class='border px-4 py-2 text-center'>${date}</td>
-                        <td class='border px-4 py-2 text-center'>${time}</td>
-                    </tr>`;
+                            <td class='border px-4 py-2 text-center'>${date}</td>
+                            <td class='border px-4 py-2 text-center'>${time}</td>
+                        </tr>`;
                 }).join("");
 
                 card += `<div class='mt-4'>
-                    <table class='min-w-full table-auto border'>
-                        <thead>
-                            <tr>
-                                <th class='border px-4 py-2'>Date</th>
-                                <th class='border px-4 py-2'>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>
-                </div>`;
+                        <table class='min-w-full table-auto border'>
+                            <thead>
+                                <tr>
+                                    <th class='border px-4 py-2'>Date</th>
+                                    <th class='border px-4 py-2'>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>
+                    </div>`;
             }
 
             card += `</div>`;
