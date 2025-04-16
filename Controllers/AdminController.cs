@@ -14,6 +14,8 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
         {
             return View("~/Views/AdminPanal/AdminLogin.cshtml");
         }
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+
         public IActionResult AdminDashboard()
         {
             return View("~/Views/AdminPanal/AdminDashboard.cshtml");
@@ -504,5 +506,23 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
             // Redirect back to the ManageUsers view
             return RedirectToAction("AdminTokensDetails");
         }
+
+        [HttpGet]
+
+        public IActionResult Logout()
+        {
+            // Remove "Username" cookie
+            if (Request.Cookies["Username"] != null)
+            {
+                Response.Cookies.Delete("Username");
+            }
+
+            // Optionally clear session
+            HttpContext.Session.Clear();
+
+            // Redirect to admin login page
+            return RedirectToAction("AdminLogin", "Admin");
+        }
+
     }
 }

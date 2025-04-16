@@ -99,6 +99,8 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
         {
             return View("~/Views/ClientPanal/ClientRegister.cshtml");
         }
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+
         public IActionResult ClientDashboard()
         {
             string clientId = GetClientDataFromCookie("client_id");
@@ -977,6 +979,22 @@ namespace RFID_.NET_MVC_PROJECT.Controllers
                     return Json(new { success = false, message = "Error occurred while fetching attendance: " + ex.Message });
                 }
             }
+        }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            // Remove "User_data" cookie
+            if (Request.Cookies["Client_data"] != null)
+            {
+                Response.Cookies.Delete("Client_data");
+            }
+
+            // Optionally clear session
+            HttpContext.Session.Clear();
+
+            // Redirect to login or home
+            return RedirectToAction("ClientLogin", "Client");
         }
 
     }
