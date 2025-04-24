@@ -1,100 +1,105 @@
 ﻿@model RFID_.NET_MVC_PROJECT.Models.getCtIdAndSubjectName
+
 @{
     Layout = "~/Views/UserPanal/_UserLayout.cshtml";
     ViewData["Title"] = "User Subject";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="container mx-auto px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Left Panel -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4">Attendance for @Model.subject_name (@Model.ct_id)</h2>
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">
+                Attendance for <span class="text-blue-600">@Model.subject_name</span>
+            </h2>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <!-- Date Filters -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label for="fromDate" class="block text-sm font-medium mb-1">From Date:</label>
-                    <div class="relative">
-                        <input type="date" id="fromDate" name="fromDate" class="w-full border rounded px-3 py-2" value="01-02-2024">
-                        <span class="absolute right-2 top-2 text-gray-500">
-                            <i class="far fa-calendar"></i>
-                        </span>
-                    </div>
+                    <label for="fromDate" class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                    <input type="date" id="fromDate" name="fromDate"
+                           class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           value="2024-02-01" />
                 </div>
                 <div>
-                    <label for="toDate" class="block text-sm font-medium mb-1">To Date:</label>
-                    <div class="relative">
-                        <input type="date" id="toDate" name="toDate" class="w-full border rounded px-3 py-2" value="01-04-2025">
-                        <span class="absolute right-2 top-2 text-gray-500">
-                            <i class="far fa-calendar"></i>
-                        </span>
-                    </div>
+                    <label for="toDate" class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                    <input type="date" id="toDate" name="toDate"
+                           class="w-full rounded-xl border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           value="2025-04-01" />
                 </div>
             </div>
 
-            <!-- Dynamic Calendar -->
-            <div class="border rounded mb-4">
-                <div class="flex justify-between items-center p-2 bg-gray-100">
-                    <button id="prevYear" class="px-3 py-1">&laquo;</button>
-                    <button id="prevMonth" class="px-3 py-1">&lsaquo;</button>
-                    <span id="currentMonthYear" class="font-medium">March 2025</span>
-                    <button id="nextMonth" class="px-3 py-1">&rsaquo;</button>
-                    <button id="nextYear" class="px-3 py-1">&raquo;</button>
+            <!-- Calendar Navigation -->
+            <div class="border rounded-xl mb-6 overflow-hidden shadow-sm">
+                <div class="flex justify-between items-center bg-gray-100 px-2 py-1">
+                    <button id="prevYear" class="text-gray-600 hover:text-blue-600 text-xs font-medium px-2 py-1 rounded hover:bg-gray-200 transition-all duration-200 shadow-sm">
+                        &laquo;
+                    </button>
+                    <button id="prevMonth" class="text-gray-600 hover:text-blue-600 text-xs font-medium px-2 py-1 rounded hover:bg-gray-200 transition-all duration-200 shadow-sm">
+                        &lsaquo;
+                    </button>
+                    <span id="currentMonthYear" class="text-sm font-semibold text-gray-800">Month Year</span>
+                    <button id="nextMonth" class="text-gray-600 hover:text-blue-600 text-xs font-medium px-2 py-1 rounded hover:bg-gray-200 transition-all duration-200 shadow-sm">
+                        &rsaquo;
+                    </button>
+                    <button id="nextYear" class="text-gray-600 hover:text-blue-600 text-xs font-medium px-2 py-1 rounded hover:bg-gray-200 transition-all duration-200 shadow-sm">
+                        &raquo;
+                    </button>
                 </div>
-
-                <table class="w-full text-center">
-                    <thead>
+                <table class="w-full text-sm text-center">
+                    <thead class="bg-blue-50">
                         <tr>
-                            <th class="py-2">MON</th>
-                            <th class="py-2">TUE</th>
-                            <th class="py-2">WED</th>
-                            <th class="py-2">THU</th>
-                            <th class="py-2">FRI</th>
-                            <th class="py-2">SAT</th>
+                            <th class="py-2 text-gray-700">MON</th>
+                            <th class="py-2 text-gray-700">TUE</th>
+                            <th class="py-2 text-gray-700">WED</th>
+                            <th class="py-2 text-gray-700">THU</th>
+                            <th class="py-2 text-gray-700">FRI</th>
+                            <th class="py-2 text-gray-700">SAT</th>
                             <th class="py-2 text-red-500">SUN</th>
                         </tr>
                     </thead>
-                    <tbody id="calendarBody">
+                    <tbody id="calendarBody" class="text-gray-800">
                         <!-- Calendar will be dynamically populated here -->
                     </tbody>
                 </table>
             </div>
 
-            <!-- Attendance Data for Selected Date -->
-            <h3 id="selectedDateTitle" class="font-bold mb-2">Attendance on 2025-04-02</h3>
-            <div class="border rounded">
-                <div class="bg-gray-100 p-3 font-semibold">
+            <!-- Attendance Table -->
+            <h3 id="selectedDateTitle" class="text-lg font-semibold mb-2 text-gray-800">Attendance on -</h3>
+            <div class="border rounded-xl overflow-hidden shadow-sm">
+                <div class="bg-gray-100 px-4 py-3 text-gray-700 font-medium">
                     Time
                 </div>
                 <div class="p-4 max-h-64 overflow-y-auto">
-                    <table id="punchTable" class="w-full border-collapse">
-                        <thead>
+                    <table id="punchTable" class="w-full table-auto text-sm border border-gray-200 rounded-lg">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="border px-4 py-2">Punch ID</th>
-                                <th class="border px-4 py-2">Timestamp</th>
-                                <th class="border px-4 py-2">User ID</th>
+                                <th class="border px-3 py-2">Punch ID</th>
+                                <th class="border px-3 py-2">Timestamp</th>
+                                <th class="border px-3 py-2">User ID</th>
                             </tr>
                         </thead>
-                        <tbody id="punchTableBody">
-                            <!-- Punch data will be populated here -->
+                        <tbody id="punchTableBody" class="text-gray-700">
+                            <!-- Punch data will be dynamically inserted -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4">Attendance Overview</h2>
-
-            <div class="h-64 flex justify-center items-center mb-4">
-                <!-- Chart container -->
-                <div class="w-full">
-                    <canvas id="attendanceChart" height="250"></canvas>
-                </div>
+        <!-- Right Panel (Chart) -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Attendance Overview</h2>
+            <div class="flex justify-center items-center h-72">
+                <canvas id="attendanceChart" class="w-full max-w-[500px]"></canvas>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <!-- Include Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
